@@ -1,44 +1,21 @@
-ROS QML
-=======
+RCLQUICK
+========
 
 Requirements
 ------------
 
 - `qt5`
-- ROS
+- ROS2 rclc library
 
 Installation
 ------------
 
-```
-> mkdir build
-> cd build
-> qmake ..
-> make
-> make install
-```
-
-Known Issue
------------
-
-Ros has a known error in the pc files, lib are specified as -l:/path/libname.so. So the "-l:" should be removed. This can be done by updating the pc files in ros:
-
-```
-> cd /opt/ros/kinetic/lib/pkgconfig/
-> sudo sed -i "s/-l://g" *
-```
-
-On Debian:
-
-```
-> cd /usr/lib/x86-64/pkgconfig/
-> sudo sed -i "s/-l://g" *
-```
+Add to your ros2 workspace.
 
 Usage
 -----
 
-See the example, they can be run with:
+See the examples, they can be run with:
 
 ```
 > qmlscene [filename]

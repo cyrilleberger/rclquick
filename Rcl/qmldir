@@ -1,0 +1,3 @@
+module Rcl
+plugin rclqmlplugin
+Time 1.0 Time.js
