@@ -2,13 +2,13 @@
 
 #include <QVariant>
 
-#include <ros/serialization.h>
-
 #include "MessageDefinition.h"
 
 MessageMessageField::~MessageMessageField()
 {
 }
+
+#if 0
 
 QVariant MessageMessageField::deserialize(ros::serialization::IStream& _stream) const
 {
@@ -60,3 +60,7 @@ void MessageMessageField::serializedLength(ros::serialization::LStream& _stream,
     }
   }
 }
+
+#endif
+
+#include "moc_MessageMessageField.cpp"

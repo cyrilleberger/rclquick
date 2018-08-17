@@ -1,3 +1,6 @@
+#ifndef _MESSAGE_MESSAGE_FIELD_H_
+#define _MESSAGE_MESSAGE_FIELD_H_
+
 #include "MessageField.h"
 
 class MessageDefinition;
@@ -11,10 +14,12 @@ public:
   {
   }
   ~MessageMessageField();
-  QVariant deserialize(ros::serialization::IStream& _stream) const override;
-  void serialize(ros::serialization::OStream & _stream, const QVariant & _variant) const override;
-  void serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const override;
+//   QVariant deserialize(ros::serialization::IStream& _stream) const override;
+//   void serialize(ros::serialization::OStream & _stream, const QVariant & _variant) const override;
+//   void serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const override;
   MessageDefinition* messageDefinition() const { return m_md; }
 private:
   MessageDefinition* m_md;
 };
+
+#endif

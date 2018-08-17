@@ -8,12 +8,13 @@ add_subdirectory(ImageTransport/)
 ## rcl plugin
 
 set(RCL_PLUGIN_SRCS
-#   src/MessageDefinition.cpp
-#   src/MessageField.cpp
-#   src/MessageMessageField.cpp
-#   src/Publisher.cpp
+  src/MessageData.cpp
+  src/MessageDefinition.cpp
+  src/MessageField.cpp
+  src/MessageMessageField.cpp
+  src/Publisher.cpp
   src/RosObject.cpp
-#   src/RosQmlPlugin.cpp
+  src/RosQmlPlugin.cpp
   src/RosThread.cpp
   src/RosWrapper.cpp
 #   src/ServiceClient.cpp

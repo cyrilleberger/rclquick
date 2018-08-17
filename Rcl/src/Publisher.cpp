@@ -1,17 +1,22 @@
 #include "Publisher.h"
 
+#include <QDebug>
 #include <QVariant>
 
-#include <topic_tools/shape_shifter.h>
-
+#include "MessageData.h"
 #include "MessageDefinition.h"
+#include "RosThread.h"
 
-Publisher::Publisher(QObject* _parent) : RosObject(_parent)
+Publisher::Publisher(QObject* _parent) : RosObject(_parent), m_publisher(rcl_get_zero_initialized_publisher())
 {
 }
 
 Publisher::~Publisher()
 {
+  if(rcl_publisher_fini(&m_publisher, RosThread::instance()->rclNode()) != RCL_RET_OK)
+  {
+    qWarning() << "Failed to finalize publisher: " << m_topic_name;
+  }
 }
 
 
@@ -29,30 +34,21 @@ void Publisher::setTopicName(const QString& _topicName)
   start_publisher();
 }
 
-void Publisher::setQueueSize(int _qS)
-{
-  m_queue_size = _qS;
-  emit(queueSizeChanged());
-  start_publisher();
-}
-
-void Publisher::setLatch(bool _qS)
-{
-  m_latch = _qS;
-  emit(latchChanged());
-  start_publisher();
-}
-
 void Publisher::start_publisher()
 {
-  if(m_data_type.isEmpty() or m_topic_name.isEmpty() or m_queue_size == 0)
+  if(rcl_publisher_fini(&m_publisher, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
-    m_publisher = ros::Publisher();
-  } else {
+    qWarning() << "Failed to finalize publisher: " << m_topic_name;
+  }
+  if(not m_data_type.isEmpty() and not m_topic_name.isEmpty())
+  {
     m_message_definition = MessageDefinition::get(m_data_type);
     emit(messageDefinitionChanged());
-    ros::AdvertiseOptions ao(m_topic_name.toStdString(), m_queue_size, m_message_definition->md5().toHex().toStdString(), m_data_type.toStdString(), m_message_definition->definition().toStdString());
-    m_publisher = m_handle.advertise(ao);
+    rcl_publisher_options_t publisher_ops = rcl_publisher_get_default_options(); // TODO support for QoS
+    if(rcl_publisher_init(&m_publisher, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &publisher_ops) != RCL_RET_OK)
+    {
+      qWarning() << "Failed to initialize publisher: " << m_topic_name;
+    }
   }
 }
 
@@ -61,13 +57,11 @@ void Publisher::publish(const QVariant& _message)
   if(m_message_definition)
   {
     QVariantMap message = m_message_definition->variantToMap(_message);
-    QByteArray data = m_message_definition->serializeMessage(message);
-    ros::serialization::IStream stream(reinterpret_cast<uint8_t*>(data.data()), data.size());
+    MessageData message_data = m_message_definition->serializeMessage(message);
     
-    topic_tools::ShapeShifter ss;
-    ss.morph(m_message_definition->md5().toHex().toStdString(), m_data_type.toStdString(), m_message_definition->definition().toStdString(), std::string());
-    ss.read(stream);
-
-    m_publisher.publish(ss);
+    if(rcl_publish(&m_publisher, message_data.data()) != RCL_RET_OK)
+    {
+      qWarning() << "Failed to publish: " << m_topic_name;
+    }
   }
 }

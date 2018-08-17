@@ -1,15 +1,14 @@
 #include "MessageDefinition.h"
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <builtin_interfaces/msg/time__struct.h>
+
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
 #include <QJSValue>
 #include <QHash>
 #include <QTextStream>
-
-#include <ros/package.h>
-#include <ros/serialization.h>
-#include <ros/time.h>
 
 #include "MessageMessageField.h"
 
@@ -25,11 +24,11 @@ namespace {
     return QVariant::fromValue(QString::fromStdString(_v));
   }
   template<>
-  inline QVariant to_variant<ros::Time>(const ros::Time& _v)
+  inline QVariant to_variant<builtin_interfaces__msg__Time>(const builtin_interfaces__msg__Time& _v)
   {
     QVariantMap map;
     map["sec"] = _v.sec;
-    map["nsec"] = _v.nsec;
+    map["nanosec"] = _v.nanosec;
     return map;
   }
   template<typename _T_>
@@ -43,10 +42,10 @@ namespace {
     return _v.value<QString>().toStdString();
   }
   template<>
-  inline ros::Time from_variant<ros::Time>(const QVariant& _v)
+  inline builtin_interfaces__msg__Time from_variant<builtin_interfaces__msg__Time>(const QVariant& _v)
   {
     QVariantMap v = _v.toMap();
-    return ros::Time(v["sec"].toInt(), v["nsec"].toInt());
+    return builtin_interfaces__msg__Time{v["sec"].value<int>(), v["nanosec"].value<uint32_t>()};
   }
 }
 
@@ -66,6 +65,7 @@ public:
   BaseTypeMessageField(const QString _name, Type _type, int _count) : MessageField(_name + suffix(_count), _type, _count)
   {
   }
+#if 0
   QVariant deserialize(ros::serialization::IStream& _stream) const override
   {
     if(count() == 1)
@@ -122,6 +122,7 @@ public:
       }
     }
   }
+#endif
 };
 
 MessageDefinition::MessageDefinition(QObject* _parent) : QObject(_parent)
@@ -144,7 +145,7 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
   }
   const QString packagename = splited[0];
   const QString messagename = splited[1];
-  QFile file(QString::fromStdString(ros::package::getPath(packagename.toStdString()).c_str()) + "/msg/" + messagename + ".msg");
+  QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString()).c_str()) + "/msg/" + messagename + ".msg");
   if(file.open(QIODevice::ReadOnly))
   {
     QTextStream stream(&file);
@@ -222,7 +223,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
         m_fields.append(new BaseTypeMessageField<int64_t>(name, MessageField::Type::Int64, count));
       }  else if(baseType == "time")
       {
-        m_fields.append(new BaseTypeMessageField<ros::Time>(name, MessageField::Type::Time, count));
+        m_fields.append(new BaseTypeMessageField<builtin_interfaces__msg__Time>(name, MessageField::Type::Time, count));
       } else {
         if(baseType == "Header")
         {
@@ -349,6 +350,7 @@ QVariantMap MessageDefinition::variantToMap(const QVariant& _variant) const
   }
 }
 
+#if 0
 QVariantMap MessageDefinition::deserializeMessage(const QByteArray& _buffer) const
 {
   ros::serialization::IStream stream(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(_buffer.data())), _buffer.size());
@@ -403,7 +405,11 @@ void MessageDefinition::serializedLength(const QVariantMap& _map, ros::serializa
   }
 }
 
+#endif
+
 QList<QObject*> MessageDefinition::fieldsLO() const
 {
   return *reinterpret_cast<const QList<QObject*>*>(&m_fields);
 }
+
+#include "moc_MessageDefinition.cpp"

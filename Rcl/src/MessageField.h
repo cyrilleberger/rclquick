@@ -1,3 +1,6 @@
+#ifndef _RCLQML_MESSAGE_FIELD_H_
+#define _RCLQML_MESSAGE_FIELD_H_
+
 #include <QObject>
 
 namespace ros
@@ -27,12 +30,15 @@ public:
   QString name() const { return m_name; }
   Type type() const { return m_type; }
   int count() const { return m_count; }
+#if 0
   virtual QVariant deserialize(ros::serialization::IStream& _stream) const = 0;
   virtual void serialize(ros::serialization::OStream& _stream, const QVariant& _variant) const = 0;
   virtual void serializedLength(ros::serialization::LStream& _stream, const QVariant& _variant) const = 0;
+#endif
 private:
   QString m_name;
   Type m_type;
   int m_count;
 };
 
+#endif

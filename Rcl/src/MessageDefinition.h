@@ -1,19 +1,15 @@
+#ifndef _MESSAGE_DEFINITION_H_
+#define _MESSAGE_DEFINITION_H_
+
 #include <QObject>
+
+#include <rosidl_generator_c/message_type_support_struct.h>
 
 class QTextStream;
 
+class MessageData;
 class MessageField;
 class ServiceDefinition;
-
-namespace ros
-{
-  namespace serialization
-  {
-    class IStream;
-    class OStream;
-    class LStream;
-  }
-}
 
 class MessageDefinition : public QObject
 {
@@ -30,12 +26,12 @@ public:
   QString typeName() const { return m_type_name; }
   QString definition() const { return m_definition; }
   QVariantMap variantToMap(const QVariant& _list) const;
-  QVariantMap deserializeMessage(const QByteArray& _buffer) const;
-  QVariantMap deserializeMessage(ros::serialization::IStream& _stream) const;
-  QByteArray serializeMessage(const QVariantMap& _hash) const;
-  void serializeMessage(const QVariantMap& _hash, ros::serialization::OStream& _stream) const;
-  quint32 serializedLength(const QVariantMap& _map) const;
-  void serializedLength(const QVariantMap& _map, ros::serialization::LStream& _stream) const;
+  QVariantMap deserializeMessage(const MessageData& _buffer) const;
+  MessageData serializeMessage(const QVariantMap& _hash) const;
+  quint32 serializedLength() const;
+  const rosidl_message_type_support_t* typeSupport() const { return m_typesupport; }
+  quint8* allocateZeroInitialised() const;
+  void disallocate(const quint8* data) const;
 private:
   void parseDefinition(const QString& _packagename, QTextStream& _definition);
 private:
@@ -46,4 +42,7 @@ private:
   QList<MessageField*> m_fields;
   QByteArray m_md5;
   QString m_definition, m_md5_definition;
+  const rosidl_message_type_support_t* m_typesupport;
 };
+
+#endif
