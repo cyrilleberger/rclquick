@@ -24,6 +24,8 @@ quint64 RosWrapper::now() const
   return RosThread::instance()->now();
 }
 
+#if 0
+
 namespace
 {
   QVariant xmlRpcToVariant(XmlRpc::XmlRpcValue _value)
@@ -108,5 +110,7 @@ QVariant RosWrapper::getParam(const QString& _name) const
     }
   }
 }
+
+#endif
 
 #include "moc_RosWrapper.cpp"

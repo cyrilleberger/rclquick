@@ -12,7 +12,7 @@ public:
   ~RosWrapper();
   quint64 startTime() const;
   Q_INVOKABLE quint64 now() const;
-  Q_INVOKABLE QVariant getParam(const QString& _name) const;
+//   Q_INVOKABLE QVariant getParam(const QString& _name) const;
 protected:
 };
 
