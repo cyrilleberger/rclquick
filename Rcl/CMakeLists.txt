@@ -19,7 +19,7 @@ set(RCL_PLUGIN_SRCS
   src/RosWrapper.cpp
 #   src/ServiceClient.cpp
 #   src/ServiceDefinition.cpp
-#   src/Subscriber.cpp
+  src/Subscriber.cpp
   )
 
 add_library(rclqmlplugin MODULE ${RCL_PLUGIN_SRCS})

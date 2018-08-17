@@ -2,11 +2,10 @@
 
 #include <QDebug>
 
-#include <topic_tools/shape_shifter.h>
-
 #include "MessageDefinition.h"
+#include "RosThread.h"
 
-Subscriber::Subscriber(QObject* _parent) : RosObject(_parent), m_queue_size(1), m_skip(0), m_skipCount(0)
+Subscriber::Subscriber(QObject* _parent) : RosObject(_parent), m_subscription(rcl_get_zero_initialized_subscription()), m_skip(0), m_skipCount(0)
 {
 }
 
@@ -21,13 +20,14 @@ void Subscriber::setTopicName(const QString& _topicName)
   subscribe();
 }
 
-void Subscriber::setQueueSize(int _qS)
+void Subscriber::setDataType(const QString& _topicName)
 {
-  m_queue_size = _qS;
-  emit(queueSizeChanged());
+  m_data_type = _topicName;
+  emit(dataTypeChanged());
   subscribe();
 }
 
+#if 0
 void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _message)
 {
   if(m_skipCount < m_skip)
@@ -53,15 +53,25 @@ void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _me
   m_lastMessage = h;
   emit(messageReceived(h, _message.getReceiptTime().toNSec(), QString::fromStdString(_message.getPublisherName())));
 }
+#endif
 
 void Subscriber::subscribe()
 {
-  if(m_topic_name.isEmpty() or m_queue_size <= 0)
+  if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
-    m_subscriber = ros::Subscriber();
-  } else {
-    m_subscriber = m_handle.subscribe<topic_tools::ShapeShifter>(m_topic_name.toStdString().c_str(), m_queue_size,
-                                                                boost::bind(&Subscriber::callback, this, _1));
+    qWarning() << "Failed to finalize subscription: " << m_topic_name;
+  }
+
+  if(not m_data_type.isEmpty() and not m_topic_name.isEmpty())
+  {
+    m_message_definition = MessageDefinition::get(m_data_type);
+    emit(messageDefinitionChanged());
+    rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
+    if(rcl_subscription_init(&m_subscription, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &subscription_ops) != RCL_RET_OK)
+    {
+      qWarning() << "Failed to initialize publisher: " << m_topic_name;
+    }
+
   }
 }
 
