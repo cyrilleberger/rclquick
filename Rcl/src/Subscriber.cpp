@@ -11,6 +11,10 @@ Subscriber::Subscriber(QObject* _parent) : RosObject(_parent), m_subscription(rc
 
 Subscriber::~Subscriber()
 {
+  if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
+  {
+    qWarning() << "Failed to finalize subscription: " << m_topic_name;
+  }
 }
 
 void Subscriber::setTopicName(const QString& _topicName)

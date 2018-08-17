@@ -1,6 +1,6 @@
 #include "RosObject.h"
 
-#include <ros/service_client.h>
+#include <rcl/client.h>
 
 class ServiceDefinition;
 
@@ -31,7 +31,7 @@ signals:
 private:
   void start_client();
   QString m_service_name, m_data_type;
-  ros::ServiceClient m_client;
+  rcl_client_t m_client;
   ServiceDefinition* m_service_definition = nullptr;
   bool m_called = false;
 };

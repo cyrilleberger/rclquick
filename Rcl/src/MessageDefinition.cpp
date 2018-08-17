@@ -145,7 +145,7 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
   }
   const QString packagename = splited[0];
   const QString messagename = splited[1];
-  QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString()).c_str()) + "/msg/" + messagename + ".msg");
+  QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/msg/" + messagename + ".msg");
   if(file.open(QIODevice::ReadOnly))
   {
     QTextStream stream(&file);

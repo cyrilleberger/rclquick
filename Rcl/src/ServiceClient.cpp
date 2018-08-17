@@ -1,18 +1,21 @@
 #include "ServiceClient.h"
 
-#include <ros/serialization.h>
-
 #include <QtConcurrent/QtConcurrent>
 
 #include "MessageDefinition.h"
+#include "RosThread.h"
 #include "ServiceDefinition.h"
 
-ServiceClient::ServiceClient(QObject* _parent) : RosObject(_parent)
+ServiceClient::ServiceClient(QObject* _parent) : RosObject(_parent), m_client(rcl_get_zero_initialized_client())
 {
 }
 
 ServiceClient::~ServiceClient()
 {
+  if(rcl_client_fini(&m_client, RosThread::instance()->rclNode()) != RCL_RET_OK)
+  {
+    qWarning() << "Failed to finalize client: " << m_service_name;
+  }
 }
 
 void ServiceClient::setDataType(const QString& _dataType)
@@ -47,6 +50,7 @@ bool ServiceClient::call(const QVariant& _message)
   QVariantMap message = m_service_definition->requestDefinition()->variantToMap(_message);
   
   QtConcurrent::run([this, message]() {
+#if 0
     ros::SerializedMessage answer;
     
     quint32 request_length = m_service_definition->requestDefinition()->serializedLength(message) + 4;
@@ -68,19 +72,27 @@ bool ServiceClient::call(const QVariant& _message)
     }
     m_called = false;
     emit(callInProgressChanged());
+#endif
   });
   return false;
 }
 
 void ServiceClient::start_client()
 {
-  if(m_data_type.isEmpty() or m_service_name.isEmpty())
+  if(rcl_client_fini(&m_client, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
-    m_client = ros::ServiceClient();
-  } else {
+    qWarning() << "Failed to finalize client: " << m_service_name;
+  }
+
+  if(not m_data_type.isEmpty() and not m_service_name.isEmpty())
+  {
     m_service_definition = ServiceDefinition::get(m_data_type);
     emit(serviceDefinitionChanged());
-    ros::ServiceClientOptions sco(m_service_name.toStdString(), m_service_definition->md5().toHex().toStdString(), false, ros::M_string());
-    m_client = m_handle.serviceClient(sco);
+
+    rcl_client_options_t client_ops = rcl_client_get_default_options();
+    if(rcl_client_init(&m_client, RosThread::instance()->rclNode(), m_service_definition->typeSupport(), qPrintable(m_service_name), &client_ops) != RCL_RET_OK)
+    {
+      qWarning() << "Failed to initialize client: " << m_service_name;
+    }
   }
 }

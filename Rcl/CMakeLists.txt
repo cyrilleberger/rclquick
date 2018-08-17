@@ -17,8 +17,8 @@ set(RCL_PLUGIN_SRCS
   src/RosQmlPlugin.cpp
   src/RosThread.cpp
   src/RosWrapper.cpp
-#   src/ServiceClient.cpp
-#   src/ServiceDefinition.cpp
+  src/ServiceClient.cpp
+  src/ServiceDefinition.cpp
   src/Subscriber.cpp
   )
 

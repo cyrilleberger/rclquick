@@ -1,5 +1,7 @@
 #include <QObject>
 
+#include <rosidl_generator_c/service_type_support_struct.h>
+
 class MessageDefinition;
 
 class ServiceDefinition : public QObject
@@ -12,6 +14,7 @@ public:
   QByteArray md5() const { return m_md5; }
   MessageDefinition* requestDefinition() const { return m_requestDefinition; }
   MessageDefinition* answerDefinition() const  { return m_answerDefinition;  }
+  const rosidl_service_type_support_t* typeSupport();
 private:
   bool m_is_valid = false;
   QString m_type_name;
