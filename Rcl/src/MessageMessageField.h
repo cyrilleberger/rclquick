@@ -10,13 +10,15 @@ class MessageMessageField : public MessageField
   Q_OBJECT
   Q_PROPERTY(MessageDefinition* messageDefinition READ messageDefinition CONSTANT)
 public:
-  MessageMessageField(const QString _name, MessageDefinition* _md, int _count) : MessageField(_name, Type::Message, _count), m_md(_md)
+  MessageMessageField(const QString _name, MessageDefinition* _md, bool _array, std::size_t _index) : MessageField(_name, Type::Message, _array, _index), m_md(_md)
   {
   }
   ~MessageMessageField();
-//   QVariant deserialize(ros::serialization::IStream& _stream) const override;
-//   void serialize(ros::serialization::OStream & _stream, const QVariant & _variant) const override;
-//   void serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const override;
+  void elementInitialize(quint8* _data) const override;
+  void elementFinalize(quint8* _data) const override;
+  QVariant elementReadValue(const quint8* _data) const override;
+  void elementWriteValue(quint8* _data, const QVariant& _value) const override;
+  std::size_t elementSize() const override;
   MessageDefinition* messageDefinition() const { return m_md; }
 private:
   MessageDefinition* m_md;

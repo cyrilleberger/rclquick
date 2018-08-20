@@ -23,13 +23,16 @@ public:
   static MessageDefinition* get(const QString& _type_name);
   bool isValid() const { return m_valid; }
   QString typeName() const { return m_type_name; }
+  QList<MessageField*> fields() const { return m_fields; }
   QVariantMap variantToMap(const QVariant& _list) const;
   QVariantMap deserializeMessage(const MessageData& _buffer) const;
+  QVariantMap deserializeMessage(const quint8* _buffer) const;
   MessageData serializeMessage(const QVariantMap& _hash) const;
-  quint32 serializedLength() const;
+  void serializeMessage(const QVariantMap& _hash, quint8* _buffer) const;
+  std::size_t serializedLength() const;
   const rosidl_message_type_support_t* typeSupport() const { return m_typesupport; }
   quint8* allocateZeroInitialised() const;
-  void disallocate(const quint8* data) const;
+  void disallocate(quint8* data) const;
 private:
   void parseDefinition(const QString& _packagename, QTextStream& _definition);
 private:

@@ -8,59 +8,35 @@ MessageMessageField::~MessageMessageField()
 {
 }
 
-#if 0
-
-QVariant MessageMessageField::deserialize(ros::serialization::IStream& _stream) const
+void MessageMessageField::elementInitialize(quint8* _data) const
 {
-  if(count() == 1)
+  for(MessageField* mf : m_md->fields())
   {
-    return m_md->deserializeMessage(_stream);
-  } else {
-    QVariantList l;
-    for(int i = 0; i < count(); ++i)
-    {
-      l.append(m_md->deserializeMessage(_stream));
-    }
-    return l;
-  }
-}
-void MessageMessageField::serialize(ros::serialization::OStream & _stream, const QVariant & _variant) const
-{
-  if(count() == 1)
-  {
-    m_md->serializeMessage(_variant.toMap(), _stream);
-  } else {
-    QVariantList l = _variant.toList();
-    int i = 0;
-    for(; i < std::min(l.size(), count()); ++i)
-    {
-      m_md->serializeMessage(l[i].toMap(), _stream);
-    }
-    for(; i < count(); ++i)
-    {
-      m_md->serializeMessage(QVariantMap(), _stream);
-    }
-  }
-}
-void MessageMessageField::serializedLength(ros::serialization::LStream& _stream, const QVariant & _variant) const
-{
-  if(count() == 1)
-  {
-    m_md->serializedLength(_variant.toMap(), _stream);
-  } else {
-    QVariantList l = _variant.toList();
-    int i = 0;
-    for(; i < std::min(l.size(), count()); ++i)
-    {
-      m_md->serializedLength(l[i].toMap(), _stream);
-    }
-    for(; i < count(); ++i)
-    {
-      m_md->serializedLength(QVariantMap(), _stream);
-    }
+    mf->fieldInitialize(_data + mf->index());
   }
 }
 
-#endif
+void MessageMessageField::elementFinalize(quint8* _data) const
+{
+  for(MessageField* mf : m_md->fields())
+  {
+    mf->fieldFinalize(_data + mf->index());
+  }
+}
+
+QVariant MessageMessageField::elementReadValue(const quint8* _data) const
+{
+  return m_md->deserializeMessage(_data);
+}
+
+void MessageMessageField::elementWriteValue(quint8* _data, const QVariant& _value) const
+{
+  m_md->serializeMessage(_value.toMap(), _data);
+}
+
+std::size_t MessageMessageField::elementSize() const
+{
+  return m_md->serializedLength();
+}
 
 #include "moc_MessageMessageField.cpp"
