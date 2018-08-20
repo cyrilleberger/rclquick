@@ -6,9 +6,11 @@
 #include <rcl/subscription.h>
 
 class MessageDefinition;
+class RosThread;
 
 class Subscriber : public RosObject
 {
+  friend class RosThread;
   Q_OBJECT
   Q_PROPERTY(QString topicName READ topicName WRITE setTopicName NOTIFY topicNameChanged)
   Q_PROPERTY(int skip READ skip WRITE setSkip NOTIFY skipChanged)

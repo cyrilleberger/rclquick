@@ -8,6 +8,9 @@
 #include <QDebug>
 #include <QProcessEnvironment>
 
+#include "ServiceClient.h"
+#include "Subscriber.h"
+
 RosThread::RosThread() : m_rcl_node(rcl_get_zero_initialized_node())
 {
   
@@ -102,6 +105,39 @@ void RosThread::run()
         cl->tryHandleAnswer();
       }
     }
+    
+    rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
+    {
+      QMutexLocker l(&m_mutex);
+      if(rcl_wait_set_init(&wait_set, m_subscribers.size(), 0, 0, m_clients.size(), 0, rcl_get_default_allocator()) != RCL_RET_OK)
+      {
+        qFatal("Failed to initialize wait_set");
+      }
+      
+      for(int i = 0; i < m_subscribers.size(); ++i)
+      {
+        if(rcl_wait_set_add_subscription(&wait_set, &m_subscribers[i]->m_subscription) != RCL_RET_OK)
+        {
+          qFatal("Error when adding subscription to wait_set");
+        }
+      }
+      for(int i = 0; i < m_clients.size(); ++i)
+      {
+        if(rcl_wait_set_add_client(&wait_set, &m_clients[i]->m_client) != RCL_RET_OK)
+        {
+          qFatal("Error when adding client to wait_set");
+        }
+      }
+    }
+    if(rcl_wait(&wait_set, 1000) != RCL_RET_OK)
+    {
+      qFatal("Failed to wait");
+    }
+    if(rcl_wait_set_fini(&wait_set) != RCL_RET_OK)
+    {
+      qFatal("Failed to finalize wait_set");
+    }
+    
   }
 }
 

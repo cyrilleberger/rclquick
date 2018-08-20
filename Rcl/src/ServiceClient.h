@@ -3,9 +3,11 @@
 #include <rcl/client.h>
 
 class ServiceDefinition;
+class RosThread;
 
 class ServiceClient : public RosObject
 {
+  friend class RosThread;
   Q_OBJECT
   Q_PROPERTY(bool callInProgress READ callInProgress NOTIFY callInProgressChanged)
   Q_PROPERTY(QString dataType READ dataType WRITE setDataType NOTIFY dataTypeChanged)
