@@ -59,7 +59,7 @@ void Subscriber::tryHandleMessage()
           m_skipCount = 0;
           
           m_lastMessage = m_message_definition->deserializeMessage(data);
-          emit(messageReceived(m_lastMessage, RosThread::instance()->now(), QString::fromLatin1(QByteArray((const char*)message_info.publisher_gid.data))));
+          emit(messageReceived(m_lastMessage, RosThread::instance()->now(), QByteArray((const char*)message_info.publisher_gid.data).toHex()));
         }
         break;
       }
