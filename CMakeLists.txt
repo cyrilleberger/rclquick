@@ -12,6 +12,7 @@ endif()
 
 find_package(ament_cmake  REQUIRED)
 find_package(rcl          REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 #########################
 ## Find Qt5
