@@ -16,10 +16,8 @@ ServiceClient::ServiceClient(QObject* _parent) : RosObject(_parent), m_client(rc
 
 ServiceClient::~ServiceClient()
 {
-  if(rcl_client_fini(&m_client, RosThread::instance()->rclNode()) != RCL_RET_OK)
-  {
-    qWarning() << "Failed to finalize client: " << m_service_name;
-  }
+  QMutexLocker l(&m_mutex);
+  RosThread::instance()->finalize(m_client);
   RosThread::instance()->unregisterClient(this);
 }
 
@@ -39,6 +37,7 @@ void ServiceClient::setServiceName(const QString& _serviceName)
 
 bool ServiceClient::call(const QVariant& _message)
 {
+  QMutexLocker l(&m_mutex);
   if(not m_service_definition)
   {
     qWarning() << "Service definition not set or not found";
@@ -71,6 +70,7 @@ bool ServiceClient::call(const QVariant& _message)
 
 void ServiceClient::tryHandleAnswer()
 {
+  QMutexLocker l(&m_mutex);
   rmw_request_id_t request_header;
   request_header.sequence_number = m_sequence_number;
 
@@ -104,10 +104,9 @@ void ServiceClient::tryHandleAnswer()
 
 void ServiceClient::start_client()
 {
-  if(rcl_client_fini(&m_client, RosThread::instance()->rclNode()) != RCL_RET_OK)
-  {
-    qWarning() << "Failed to finalize client: " << m_service_name;
-  }
+  QMutexLocker l(&m_mutex);
+  RosThread::instance()->finalize(m_client);
+  m_client = rcl_get_zero_initialized_client();
 
   if(not m_data_type.isEmpty() and not m_service_name.isEmpty())
   {

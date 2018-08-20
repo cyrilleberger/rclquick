@@ -83,6 +83,17 @@ void RosThread::unregisterSubscriber(Subscriber* _subscriber)
   m_subscribers.removeAll(_subscriber);
 }
 
+void RosThread::finalize(rcl_subscription_t _subscription)
+{
+  QMutexLocker l(&m_mutex_finalize);
+  m_subscriptionsToFinalize.append(_subscription);
+}
+
+void RosThread::finalize(rcl_client_t _client)
+{
+  QMutexLocker l(&m_mutex_finalize);
+  m_clientsToFinalize.append(_client);
+}
 
 void RosThread::run()
 {
@@ -136,6 +147,21 @@ void RosThread::run()
     if(rcl_wait_set_fini(&wait_set) != RCL_RET_OK)
     {
       qFatal("Failed to finalize wait_set");
+    }
+    QMutexLocker l(&m_mutex_finalize);
+    for(rcl_subscription_t subscription : m_subscriptionsToFinalize)
+    {
+      if(rcl_subscription_fini(&subscription, &m_rcl_node) != RCL_RET_OK)
+      {
+        qWarning() << "Failed to finalize subscription!";
+      }
+    }
+    for(rcl_client_t client : m_clientsToFinalize)
+    {
+      if(rcl_client_fini(&client, &m_rcl_node) != RCL_RET_OK)
+      {
+        qWarning() << "Failed to finalize client!";
+      }
     }
     
   }

@@ -1,5 +1,7 @@
 #include "RosObject.h"
 
+#include <QMutex>
+
 #include <rcl/client.h>
 
 class ServiceDefinition;
@@ -33,6 +35,7 @@ signals:
   void answerReceived(const QVariant& answer);
   void callFailed();
 private:
+  QMutex m_mutex;
   void start_client();
   QString m_service_name, m_data_type;
   rcl_client_t m_client;

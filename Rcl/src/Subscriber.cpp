@@ -17,10 +17,7 @@ Subscriber::~Subscriber()
 {
   QMutexLocker l(&m_mutex);
   RosThread::instance()->unregisterSubscriber(this);
-  if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
-  {
-    qWarning() << "Failed to finalize subscription: " << m_topic_name;
-  }
+  RosThread::instance()->finalize(m_subscription);
 }
 
 void Subscriber::setTopicName(const QString& _topicName)
@@ -78,10 +75,8 @@ void Subscriber::tryHandleMessage()
 void Subscriber::subscribe()
 {
   QMutexLocker l(&m_mutex);
-  if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
-  {
-    qWarning() << "Failed to finalize subscription: " << m_topic_name;
-  }
+  RosThread::instance()->finalize(m_subscription);
+  m_subscription = rcl_get_zero_initialized_subscription();
 
   if(not m_data_type.isEmpty() and not m_topic_name.isEmpty())
   {
