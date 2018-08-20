@@ -20,6 +20,7 @@ set(RCL_PLUGIN_SRCS
   src/ServiceClient.cpp
   src/ServiceDefinition.cpp
   src/Subscriber.cpp
+  src/TypeSupport.cpp
   )
 
 add_library(rclqmlplugin MODULE ${RCL_PLUGIN_SRCS})

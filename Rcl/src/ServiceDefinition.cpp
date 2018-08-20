@@ -10,6 +10,7 @@
 
 
 #include "MessageDefinition.h"
+#include "TypeSupport.h"
 
 ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_type_name), m_requestDefinition(new MessageDefinition(this)), m_answerDefinition(new MessageDefinition(this))
 {
@@ -42,14 +43,8 @@ ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_t
     m_answerDefinition->parseDefinition(packagename, answer_definition);
     
     m_is_valid = m_requestDefinition->isValid() and m_answerDefinition->isValid();
-    
-    QCryptographicHash hash(QCryptographicHash::Md5);
-    hash.addData(m_requestDefinition->m_md5_definition.toUtf8());
-    hash.addData(m_answerDefinition->m_md5_definition.toUtf8());
-    
-    m_md5 = hash.result();
-
-    qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text: " << m_requestDefinition->m_definition + "\n---\n" + m_answerDefinition->m_definition;
+    m_type_support = TypeSupport::getServiceTypeSupport(packagename, servicename);
+    m_is_valid = m_is_valid and m_type_support;
     
   } else {
     qWarning() << "Failed to open: " << file.fileName();

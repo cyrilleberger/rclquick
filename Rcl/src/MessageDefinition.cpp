@@ -11,6 +11,7 @@
 #include <QTextStream>
 
 #include "MessageMessageField.h"
+#include "TypeSupport.h"
 
 namespace {
   template<typename _T_>
@@ -150,6 +151,8 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
   {
     QTextStream stream(&file);
     parseDefinition(packagename, stream);
+    m_typesupport = TypeSupport::getMessageTypeSupport(packagename, messagename);
+    m_valid = m_valid and m_typesupport;
   } else {
     qWarning() << "Failed to open: " << file.fileName();
   }
@@ -157,20 +160,16 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
 
 void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream& _stream)
 {
-  QString md5text, md5constants; // see https://github.com/ros/genmsg/blob/indigo-devel/src/genmsg/gentools.py for computation of md5
   m_valid = true;
-  QString subdefinition;
   while(not _stream.atEnd())
   {
     QString line = _stream.readLine();
-    m_definition += line;
     int comment_char = line.indexOf('#');
     QStringRef ref = (comment_char >= 0) ? line.leftRef(comment_char) : QStringRef(&line);
     QVector<QStringRef>  l = ref.split(' ', QString::SkipEmptyParts);
     if(l.size() == 2)
     {
       QString type = l[0].toString();
-      QString md5type = type;
       QString name = l[1].toString();
       int count = 1;
       if(type.endsWith("[]"))
@@ -239,19 +238,15 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
         if(md->isValid())
         {
           m_fields.append(new MessageMessageField(name, md, count));
-          md5type = QString::fromUtf8(md->md5().toHex());
-          subdefinition += "================================================================================\n\
-MSG: " + md->typeName() + "\n" + md->definition();
         } else {
           qWarning() << "Unsupported field type: " << type << name;
           m_valid = false;
         }
       }
-      md5text += md5type + " " + name + "\n";
     } else if(l.size() == 4) {
       if(l[2] == "=")
       {
-        md5constants += l[0].toString() + " " + l[1].toString() + " = " + l[3].toString() + "\n";
+        // Constant, ignored for now
       } else {
         qWarning() << "Invalid line: " << line;
         m_valid = false;
@@ -261,11 +256,6 @@ MSG: " + md->typeName() + "\n" + md->definition();
       m_valid = false;
     }
   }
-  m_definition += subdefinition;
-  md5text.chop(1);
-  m_md5_definition = md5constants + md5text;
-  m_md5 = QCryptographicHash::hash((md5constants + md5text).toUtf8(), QCryptographicHash::Md5);
-  qDebug() << "Hash for " << m_type_name << " is " << m_md5.toHex() << " text " << md5text;
 }
 
 MessageDefinition::~MessageDefinition()

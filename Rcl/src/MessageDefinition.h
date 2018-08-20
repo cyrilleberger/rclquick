@@ -22,9 +22,7 @@ public:
   ~MessageDefinition();
   static MessageDefinition* get(const QString& _type_name);
   bool isValid() const { return m_valid; }
-  QByteArray md5() const { return m_md5; }
   QString typeName() const { return m_type_name; }
-  QString definition() const { return m_definition; }
   QVariantMap variantToMap(const QVariant& _list) const;
   QVariantMap deserializeMessage(const MessageData& _buffer) const;
   MessageData serializeMessage(const QVariantMap& _hash) const;
@@ -40,8 +38,6 @@ private:
   QString m_type_name;
   bool m_valid = false;
   QList<MessageField*> m_fields;
-  QByteArray m_md5;
-  QString m_definition, m_md5_definition;
   const rosidl_message_type_support_t* m_typesupport;
 };
 
