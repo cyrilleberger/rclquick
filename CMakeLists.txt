@@ -31,7 +31,14 @@ if(NOT IS_ABSOLUTE "${INSTALL_QML_DIR}")
   set(INSTALL_QML_DIR "${CMAKE_INSTALL_PREFIX}/${INSTALL_QML_DIR}")
 endif()
 
+####################
+## environment hooks
+ament_environment_hooks(env_hook/rclquick.sh.in)
+
+ament_package()
+
 ########################
 ## subdirectories
 
 add_subdirectory(Rcl)
+
