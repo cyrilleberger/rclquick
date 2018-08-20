@@ -41,7 +41,7 @@ namespace TypeSupport
   const rosidl_service_type_support_t* getServiceTypeSupport(const QString& _package_name, const QString& _srvname)
   {
     QFunctionPointer function = QLibrary::resolve(lib_prefix + _package_name + "__rosidl_typesupport_c" + lib_ext,
-        qPrintable("rosidl_typesupport_c__get_message_type_support_handle__" + _package_name + "__srv__" + _srvname));
+        qPrintable("rosidl_typesupport_c__get_service_type_support_handle__" + _package_name + "__srv__" + _srvname));
     
     if (function)
     {

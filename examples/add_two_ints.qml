@@ -1,4 +1,4 @@
-// Run with: rosrun roscpp_tutorials add_two_ints_server
+// Run with: ros2 run  demo_nodes_cpp add_two_ints_server
 //
 
 import QtQuick 2.0
@@ -14,7 +14,7 @@ ColumnLayout
   {
     id: client1
     serviceName: "/add_two_ints"
-    dataType: "roscpp_tutorials/TwoInts"
+    dataType: "example_interfaces/AddTwoInts"
     onAnswerReceived: result1.text = answer.sum.toString()
     onCallFailed: result1.text = "Call failed"
   }
@@ -22,7 +22,7 @@ ColumnLayout
   {
     id: client2
     serviceName: "/add_two_ints"
-    dataType: "roscpp_tutorials/TwoInts"
+    dataType: "example_interfaces/AddTwoInts"
     onAnswerReceived: result2.text = answer.sum.toString()
     onCallFailed: result2.text = "Call failed"
   }
