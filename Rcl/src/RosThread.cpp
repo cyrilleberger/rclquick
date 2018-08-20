@@ -11,7 +11,7 @@
 #include "ServiceClient.h"
 #include "Subscriber.h"
 
-RosThread::RosThread() : m_rcl_node(rcl_get_zero_initialized_node())
+RosThread::RosThread() : m_rcl_node(rcl_get_zero_initialized_node()), m_wake_up_loop(rcl_get_zero_initialized_guard_condition())
 {
   
 }
@@ -63,41 +63,51 @@ void RosThread::registerClient(ServiceClient* _client)
 {
   QMutexLocker l(&m_mutex);
   m_clients.append(_client);
+  wakeUpLoop();
 }
 
 void RosThread::unregisterClient(ServiceClient* _client)
 {
   QMutexLocker l(&m_mutex);
   m_clients.removeAll(_client);
+  wakeUpLoop();
 }
 
 void RosThread::registerSubscriber(Subscriber* _subscriber)
 {
   QMutexLocker l(&m_mutex);
   m_subscribers.append(_subscriber);
+  wakeUpLoop();
 }
 
 void RosThread::unregisterSubscriber(Subscriber* _subscriber)
 {
   QMutexLocker l(&m_mutex);
   m_subscribers.removeAll(_subscriber);
+  wakeUpLoop();
 }
 
 void RosThread::finalize(rcl_subscription_t _subscription)
 {
   QMutexLocker l(&m_mutex_finalize);
   m_subscriptionsToFinalize.append(_subscription);
+  wakeUpLoop();
 }
 
 void RosThread::finalize(rcl_client_t _client)
 {
   QMutexLocker l(&m_mutex_finalize);
   m_clientsToFinalize.append(_client);
+  wakeUpLoop();
 }
 
 void RosThread::run()
 {
   m_startTime = now();
+  if(rcl_guard_condition_init(&m_wake_up_loop, rcl_guard_condition_get_default_options()) != RCL_RET_OK)
+  {
+    qFatal("Failed to initialize wake up loop");
+  }
   while(true)
   {
     {
@@ -120,9 +130,14 @@ void RosThread::run()
     rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
     {
       QMutexLocker l(&m_mutex);
-      if(rcl_wait_set_init(&wait_set, m_subscribers.size(), 0, 0, m_clients.size(), 0, rcl_get_default_allocator()) != RCL_RET_OK)
+      if(rcl_wait_set_init(&wait_set, m_subscribers.size(), 1, 0, m_clients.size(), 0, rcl_get_default_allocator()) != RCL_RET_OK)
       {
         qFatal("Failed to initialize wait_set");
+      }
+      
+      if(rcl_wait_set_add_guard_condition(&wait_set, &m_wake_up_loop) != RCL_RET_OK)
+      {
+        qFatal("Error when adding guard condition to wait_set %s", rcl_get_error_string_safe());
       }
       
       for(int i = 0; i < m_subscribers.size(); ++i)
@@ -147,7 +162,7 @@ void RosThread::run()
         }
       }
     }
-    rcl_ret_t ret_wait = rcl_wait(&wait_set, 1000);
+    rcl_ret_t ret_wait = rcl_wait(&wait_set, -1);
     if(ret_wait == RCL_RET_ERROR or ret_wait == RCL_RET_INVALID_ARGUMENT)
     {
       qFatal("Failed to wait: %s", rcl_get_error_string_safe());
@@ -162,17 +177,29 @@ void RosThread::run()
     {
       if(rcl_subscription_fini(&subscription, &m_rcl_node) != RCL_RET_OK)
       {
-        qWarning() << "Failed to finalize subscription!";
+        qWarning() << "Failed to finalize subscription!" << rcl_get_error_string_safe();
+        rcl_reset_error();
       }
     }
     for(rcl_client_t client : m_clientsToFinalize)
     {
       if(rcl_client_fini(&client, &m_rcl_node) != RCL_RET_OK)
       {
-        qWarning() << "Failed to finalize client!";
+        qWarning() << "Failed to finalize client!" << rcl_get_error_string_safe();
+        rcl_reset_error();
       }
     }
     
+  }
+}
+
+
+void RosThread::wakeUpLoop()
+{
+  if(rcl_trigger_guard_condition(&m_wake_up_loop) != RCL_RET_OK)
+  {
+    qWarning() << "Failed to wake up loop: " << rcl_get_error_string_safe();
+    rcl_reset_error();
   }
 }
 

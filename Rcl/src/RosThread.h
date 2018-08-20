@@ -6,6 +6,7 @@
 #include <QThreadPool>
 
 #include <rcl/client.h>
+#include <rcl/guard_condition.h>
 #include <rcl/node.h>
 #include <rcl/subscription.h>
 
@@ -28,6 +29,7 @@ public:
   void finalize(rcl_client_t _client);
 protected:
   void run();
+  void wakeUpLoop();
 private:
   rcl_node_t m_rcl_node;
   quint64 m_startTime;
@@ -35,6 +37,7 @@ private:
   QMutex m_mutex;
   QList<Subscriber*>    m_subscribers;
   QList<ServiceClient*> m_clients;
+  rcl_guard_condition_t m_wake_up_loop;
   QMutex m_mutex_finalize;
   QList<rcl_subscription_t> m_subscriptionsToFinalize;
   QList<rcl_client_t> m_clientsToFinalize;
