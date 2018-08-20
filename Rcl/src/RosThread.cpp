@@ -140,10 +140,12 @@ void RosThread::run()
         }
       }
     }
-    if(rcl_wait(&wait_set, 1000) != RCL_RET_OK)
+    rcl_ret_t ret_wait = rcl_wait(&wait_set, 1000);
+    if(ret_wait == RCL_RET_ERROR or ret_wait == RCL_RET_INVALID_ARGUMENT)
     {
-      qFatal("Failed to wait");
+      qFatal("Failed to wait: %s", rcl_get_error_string_safe());
     }
+    rcl_reset_error();
     if(rcl_wait_set_fini(&wait_set) != RCL_RET_OK)
     {
       qFatal("Failed to finalize wait_set");
