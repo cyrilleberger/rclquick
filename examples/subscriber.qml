@@ -10,6 +10,7 @@ MessageView
   {
     id: sub
     topicName: "/string"
+    dataType: "std_msgs/String"
     onMessageReceived:
     {
       console.log("Received ", message, " at ", timestamp, " from ", publisher)

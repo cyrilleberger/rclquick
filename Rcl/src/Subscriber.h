@@ -12,6 +12,7 @@ class Subscriber : public RosObject
 {
   friend class RosThread;
   Q_OBJECT
+  Q_PROPERTY(QString dataType READ dataType WRITE setDataType NOTIFY dataTypeChanged)
   Q_PROPERTY(QString topicName READ topicName WRITE setTopicName NOTIFY topicNameChanged)
   Q_PROPERTY(int skip READ skip WRITE setSkip NOTIFY skipChanged)
   Q_PROPERTY(QVariant lastMessage READ lastMessage NOTIFY messageReceived)

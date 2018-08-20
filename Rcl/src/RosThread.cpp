@@ -127,16 +127,23 @@ void RosThread::run()
       
       for(int i = 0; i < m_subscribers.size(); ++i)
       {
-        if(rcl_wait_set_add_subscription(&wait_set, &m_subscribers[i]->m_subscription) != RCL_RET_OK)
+        
+        if(rcl_subscription_is_valid(&m_subscribers[i]->m_subscription, NULL))
         {
-          qFatal("Error when adding subscription to wait_set");
+          if(rcl_wait_set_add_subscription(&wait_set, &m_subscribers[i]->m_subscription) != RCL_RET_OK)
+          {
+            qFatal("Error when adding subscription to wait_set %s", rcl_get_error_string_safe());
+          }
         }
       }
       for(int i = 0; i < m_clients.size(); ++i)
       {
-        if(rcl_wait_set_add_client(&wait_set, &m_clients[i]->m_client) != RCL_RET_OK)
+        if(rcl_client_is_valid(&m_clients[i]->m_client, NULL))
         {
-          qFatal("Error when adding client to wait_set");
+          if(rcl_wait_set_add_client(&wait_set, &m_clients[i]->m_client) != RCL_RET_OK)
+          {
+            qFatal("Error when adding client to wait_set %s", rcl_get_error_string_safe());
+          }
         }
       }
     }
@@ -148,7 +155,7 @@ void RosThread::run()
     rcl_reset_error();
     if(rcl_wait_set_fini(&wait_set) != RCL_RET_OK)
     {
-      qFatal("Failed to finalize wait_set");
+      qFatal("Failed to finalize wait_set %s", rcl_get_error_string_safe());
     }
     QMutexLocker l(&m_mutex_finalize);
     for(rcl_subscription_t subscription : m_subscriptionsToFinalize)
