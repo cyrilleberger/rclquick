@@ -103,12 +103,18 @@ void RosThread::finalize(rcl_client_t _client)
 
 void RosThread::run()
 {
+  m_running = true;
   m_startTime = now();
   if(rcl_guard_condition_init(&m_wake_up_loop, rcl_guard_condition_get_default_options()) != RCL_RET_OK)
   {
     qFatal("Failed to initialize wake up loop");
   }
-  while(true)
+  connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, [this]()
+  {
+    m_running = false;
+    wakeUpLoop();
+  });
+  while(m_running)
   {
     {
       QMutexLocker l(&m_mutex);

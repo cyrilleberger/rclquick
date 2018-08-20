@@ -41,6 +41,7 @@ private:
   QMutex m_mutex_finalize;
   QList<rcl_subscription_t> m_subscriptionsToFinalize;
   QList<rcl_client_t> m_clientsToFinalize;
+  bool m_running;
 };
 
 #endif // ROSTHREAD_H
