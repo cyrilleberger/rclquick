@@ -1,16 +1,22 @@
 #include "Subscriber.h"
 
+#include <rcl/error_handling.h>
+
 #include <QDebug>
 
+#include "MessageData.h"
 #include "MessageDefinition.h"
 #include "RosThread.h"
 
 Subscriber::Subscriber(QObject* _parent) : RosObject(_parent), m_subscription(rcl_get_zero_initialized_subscription()), m_skip(0), m_skipCount(0)
 {
+  RosThread::instance()->registerSubscriber(this);
 }
 
 Subscriber::~Subscriber()
 {
+  QMutexLocker l(&m_mutex);
+  RosThread::instance()->unregisterSubscriber(this);
   if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
     qWarning() << "Failed to finalize subscription: " << m_topic_name;
@@ -31,36 +37,47 @@ void Subscriber::setDataType(const QString& _topicName)
   subscribe();
 }
 
-#if 0
-void Subscriber::callback(ros::MessageEvent<const topic_tools::ShapeShifter> _message)
+void Subscriber::tryHandleMessage()
 {
-  if(m_skipCount < m_skip)
+  QMutexLocker l(&m_mutex);
+  
+  MessageData data(m_message_definition);
+
+  rmw_message_info_t message_info;
+  message_info.from_intra_process = false;
+  
+  
+  rcl_ret_t status = rcl_take(&m_subscription, data.data(), &message_info);
+
+  switch(status)
   {
-    ++m_skipCount;
-    return;
+    case RCL_RET_OK:
+    {
+      if(m_skipCount < m_skip)
+      {
+        ++m_skipCount;
+      } else {
+        m_skipCount = 0;
+        
+        m_lastMessage = m_message_definition->deserializeMessage(data);
+        emit(messageReceived(m_lastMessage, RosThread::instance()->now(), QString::fromLatin1(QByteArray((const char*)message_info.publisher_gid.data))));
+      }
+      break;
+    }
+    case RCL_RET_SUBSCRIPTION_TAKE_FAILED:
+      // I am guessing answer is not available yet we get this error message
+      break;
+    default:
+      qWarning() << "Failed to get subscribtion message" << m_topic_name << rcl_get_error_string_safe();
+      rcl_reset_error();
+      break;
   }
-  m_skipCount = 0;
-  MessageDefinition* md = MessageDefinition::get(QString::fromStdString(_message.getMessage()->getDataType()));
-  if(md != m_message_definition)
-  {
-    m_message_definition = md;
-    emit(messageDefinitionChanged());
-  }
-  
-  QByteArray arr;
-  arr.resize(_message.getMessage()->size());
-  
-  ros::serialization::OStream stream(reinterpret_cast<uint8_t*>(arr.data()), arr.size());
-  _message.getMessage()->write(stream);
-  
-  QVariantMap h = md->deserializeMessage(arr);
-  m_lastMessage = h;
-  emit(messageReceived(h, _message.getReceiptTime().toNSec(), QString::fromStdString(_message.getPublisherName())));
 }
-#endif
+
 
 void Subscriber::subscribe()
 {
+  QMutexLocker l(&m_mutex);
   if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
     qWarning() << "Failed to finalize subscription: " << m_topic_name;

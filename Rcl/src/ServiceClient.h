@@ -21,6 +21,8 @@ public:
   bool callInProgress() const { return m_called; }
   Q_INVOKABLE bool call(const QVariant& _message);
   ServiceDefinition* serviceDefinition() const { return m_service_definition; }
+private:
+  void tryHandleAnswer();
 signals:
   void dataTypeChanged();
   void serviceNameChanged();
@@ -34,4 +36,5 @@ private:
   rcl_client_t m_client;
   ServiceDefinition* m_service_definition = nullptr;
   bool m_called = false;
+  int64_t m_sequence_number;
 };

@@ -91,8 +91,7 @@ void RosThread::run()
       // Handle subscription
       for(Subscriber* sub : m_subscribers)
       {
-        qFatal("unimplemented");
-        Q_UNUSED(sub);
+        sub->tryHandleMessage();
       }
     }
     {
@@ -100,8 +99,7 @@ void RosThread::run()
       // Handle client
       for(ServiceClient* cl : m_clients)
       {
-        qFatal("unimplemented");
-        Q_UNUSED(cl);
+        cl->tryHandleAnswer();
       }
     }
   }

@@ -1,5 +1,6 @@
 #include "RosObject.h"
 
+#include <QMutex>
 #include <QVariantMap>
 
 #include <rcl/subscription.h>
@@ -24,6 +25,8 @@ public:
   QString dataType() const { return m_data_type; }
   void setDataType(const QString& _topicName);
   MessageDefinition* messageDefinition() const { return m_message_definition; }
+private:
+  void tryHandleMessage();
 signals:
   void topicNameChanged();
   void dataTypeChanged();
@@ -32,6 +35,7 @@ signals:
   void messageDefinitionChanged();
 private:
   void subscribe();
+  QMutex m_mutex;
   rcl_subscription_t m_subscription;
   QString m_topic_name, m_data_type;
   int m_skip, m_skipCount;
