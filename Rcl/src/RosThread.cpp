@@ -43,7 +43,7 @@ RosThread* RosThread::instance()
     QString ros_name = QProcessEnvironment::systemEnvironment().value("ROS_NAME");
     if(ros_name.isEmpty())
     {
-      ros_name = QString("qmlapp_%i").arg(QCoreApplication::applicationPid());
+      ros_name = QString("qmlapp_%0").arg(QCoreApplication::applicationPid());
     }
 
     QString ros_namespace = QProcessEnvironment::systemEnvironment().value("ROS_NAMESPACE");
