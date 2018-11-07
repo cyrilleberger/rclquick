@@ -92,7 +92,7 @@ void Subscriber::subscribe()
     {
       emit(messageDefinitionChanged());
       rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
-      qDebug() << m_message_definition << m_message_definition->typeSupport();
+      qDebug() << m_message_definition << m_message_definition->typeSupport() << m_topic_name;
       if(rcl_subscription_init(&m_subscription, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &subscription_ops) != RCL_RET_OK)
       {
         qWarning() << "Failed to initialize subscriber: " << m_topic_name;

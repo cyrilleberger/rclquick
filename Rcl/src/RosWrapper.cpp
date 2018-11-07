@@ -2,6 +2,8 @@
 
 #include <QDateTime>
 #include <QDebug>
+#include <QJSValue>
+#include <QUuid>
 #include <QVariant>
 
 #include "RosThread.h"
@@ -38,6 +40,28 @@ QByteArray RosWrapper::toByteArray(const QVariant& _list) const
 QString RosWrapper::toHex(const QByteArray& _array) const
 {
   return QString::fromLatin1(_array.toHex());
+}
+
+bool RosWrapper::sameAs(const QVariant& _a, const QVariant& _b) const
+{
+  QVariant a = _a;
+  QVariant b = _b;
+  if(a.userType() == qMetaTypeId<QJSValue>())
+  {
+    a = a.value<QJSValue>().toVariant();
+  }
+  if(b.userType() == qMetaTypeId<QJSValue>())
+  {
+    b = b.value<QJSValue>().toVariant();
+  }
+  return a == b;
+}
+
+QString RosWrapper::toUuid(const QVariant& _list) const
+{
+  QByteArray arr = toByteArray(_list);
+  QUuid uuid(arr);
+  return uuid.toString();
 }
 
 

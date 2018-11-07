@@ -14,6 +14,8 @@ public:
   Q_INVOKABLE quint64 now() const;
   Q_INVOKABLE QByteArray toByteArray(const QVariant& _list) const;
   Q_INVOKABLE QString toHex(const QByteArray& _array) const;
+  Q_INVOKABLE bool sameAs(const QVariant& _a, const QVariant& _b) const;
+  Q_INVOKABLE QString toUuid(const QVariant& _list) const;
 //   Q_INVOKABLE QVariant getParam(const QString& _name) const;
 protected:
 };
