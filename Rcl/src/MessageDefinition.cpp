@@ -167,7 +167,6 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       if(type.endsWith("[]"))
       {
         is_array = true;
-        qFatal("unimplemented");
       }
       QString baseType;
       if(type.endsWith(']'))
@@ -175,7 +174,6 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
         QRegExp r("(.*)\\[(.*)\\]");
         r.exactMatch(type);
         baseType = r.cap(1);
-//         count    = r.cap(2).toInt();
         is_array = true;
       } else {
         baseType = type;
