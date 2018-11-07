@@ -90,7 +90,8 @@ void Subscriber::subscribe()
     rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
     if(rcl_subscription_init(&m_subscription, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &subscription_ops) != RCL_RET_OK)
     {
-      qWarning() << "Failed to initialize publisher: " << m_topic_name;
+      qWarning() << "Failed to initialize subscriber: " << m_topic_name;
+      rcutils_reset_error();
     }
 
   }

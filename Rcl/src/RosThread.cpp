@@ -155,6 +155,8 @@ void RosThread::run()
           {
             qFatal("Error when adding subscription to wait_set %s", rcl_get_error_string_safe());
           }
+        } else {
+          rcutils_reset_error();
         }
       }
       for(int i = 0; i < m_clients.size(); ++i)
@@ -165,6 +167,8 @@ void RosThread::run()
           {
             qFatal("Error when adding client to wait_set %s", rcl_get_error_string_safe());
           }
+        } else {
+          rcutils_reset_error();
         }
       }
     }

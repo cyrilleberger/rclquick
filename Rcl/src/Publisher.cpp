@@ -16,6 +16,7 @@ Publisher::~Publisher()
   if(rcl_publisher_fini(&m_publisher, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
     qWarning() << "Failed to finalize publisher: " << m_topic_name;
+    rcutils_reset_error();
   }
 }
 
@@ -39,6 +40,7 @@ void Publisher::start_publisher()
   if(rcl_publisher_fini(&m_publisher, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
     qWarning() << "Failed to finalize publisher: " << m_topic_name;
+    rcutils_reset_error();
   }
   if(not m_data_type.isEmpty() and not m_topic_name.isEmpty())
   {
@@ -48,6 +50,7 @@ void Publisher::start_publisher()
     if(rcl_publisher_init(&m_publisher, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &publisher_ops) != RCL_RET_OK)
     {
       qWarning() << "Failed to initialize publisher: " << m_topic_name;
+      rcutils_reset_error();
     }
   }
 }
@@ -62,6 +65,7 @@ void Publisher::publish(const QVariant& _message)
     if(rcl_publish(&m_publisher, message_data.data()) != RCL_RET_OK)
     {
       qWarning() << "Failed to publish: " << m_topic_name;
+      rcutils_reset_error();
     }
   }
 }
