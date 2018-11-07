@@ -27,6 +27,7 @@ public:
   ServiceDefinition* serviceDefinition() const { return m_service_definition; }
 private:
   void tryHandleAnswer();
+  void start_client();
 signals:
   void dataTypeChanged();
   void serviceNameChanged();
@@ -36,7 +37,6 @@ signals:
   void callFailed();
 private:
   QMutex m_mutex;
-  void start_client();
   QString m_service_name, m_data_type;
   rcl_client_t m_client;
   ServiceDefinition* m_service_definition = nullptr;

@@ -24,6 +24,23 @@ quint64 RosWrapper::now() const
   return RosThread::instance()->now();
 }
 
+QByteArray RosWrapper::toByteArray(const QVariant& _list) const
+{
+  QVariantList l = _list.toList();
+  QByteArray ba(l.size(), 0);
+  for(int i = 0; i < l.size(); ++i)
+  {
+    ba[i] = l[i].value<char>();
+  }
+  return ba;
+}
+
+QString RosWrapper::toHex(const QByteArray& _array) const
+{
+  return QString::fromLatin1(_array.toHex());
+}
+
+
 #if 0
 
 namespace

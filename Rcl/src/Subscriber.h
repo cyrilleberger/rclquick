@@ -29,6 +29,7 @@ public:
   void setDataType(const QString& _topicName);
   MessageDefinition* messageDefinition() const { return m_message_definition; }
 private:
+  void subscribe();
   void tryHandleMessage();
 signals:
   void topicNameChanged();
@@ -37,7 +38,6 @@ signals:
   void messageReceived(const QVariant& message, quint64 timestamp, const QString& publisher);
   void messageDefinitionChanged();
 private:
-  void subscribe();
   QMutex m_mutex;
   rcl_subscription_t m_subscription;
   QString m_topic_name, m_data_type;

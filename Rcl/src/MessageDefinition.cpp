@@ -123,6 +123,7 @@ MessageDefinition::MessageDefinition(QObject* _parent) : QObject(_parent)
 
 MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_type_name)
 {
+  Q_ASSERT(not _type_name.endsWith("[]"));
   qDebug() << "MessageDefinition for " << m_type_name;
   if(m_type_name == "Header")
   {
@@ -164,12 +165,12 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       QString type = l[0].toString();
       QString name = l[1].toString();
       bool is_array = false;
+      QString baseType;
       if(type.endsWith("[]"))
       {
         is_array = true;
-      }
-      QString baseType;
-      if(type.endsWith(']'))
+        baseType = type.left(type.length() - 2);
+      } else if(type.endsWith(']'))
       {
         QRegExp r("(.*)\\[(.*)\\]");
         r.exactMatch(type);
@@ -211,7 +212,10 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       } else if(baseType == "int64")
       {
         m_fields.append(new BaseTypeMessageField<int64_t>(name, MessageField::Type::Int64, is_array, current_index));
-      }  else if(baseType == "time")
+      } else if(baseType == "bool")
+      {
+        m_fields.append(new BaseTypeMessageField<bool>(name, MessageField::Type::Bool, is_array, current_index));
+      } else if(baseType == "time")
       {
         m_fields.append(new BaseTypeMessageField<builtin_interfaces__msg__Time>(name, MessageField::Type::Time, is_array, current_index));
       } else {
@@ -220,11 +224,13 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
           baseType = "std_msgs/Header";
           type = "std_msgs/" + type;
         }
-        if(not type.contains("/"))
+        qDebug() << baseType; 
+        if(not baseType.contains("/"))
         {
           type = _packagename + "/" + type;
+          baseType = _packagename + "/" + baseType;
         }
-        MessageDefinition* md = MessageDefinition::get(type);
+        MessageDefinition* md = MessageDefinition::get(baseType);
         qDebug() << md << type << md->isValid();
         if(md->isValid())
         {

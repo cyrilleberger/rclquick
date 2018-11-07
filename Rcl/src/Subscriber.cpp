@@ -17,21 +17,20 @@ Subscriber::~Subscriber()
 {
   QMutexLocker l(&m_mutex);
   RosThread::instance()->unregisterSubscriber(this);
-  RosThread::instance()->finalize(m_subscription);
 }
 
 void Subscriber::setTopicName(const QString& _topicName)
 {
   m_topic_name = _topicName;
   emit(topicNameChanged());
-  subscribe();
+  RosThread::instance()->requestSubscriptionUpdate(this);
 }
 
 void Subscriber::setDataType(const QString& _topicName)
 {
   m_data_type = _topicName;
   emit(dataTypeChanged());
-  subscribe();
+  RosThread::instance()->requestSubscriptionUpdate(this);
 }
 
 void Subscriber::tryHandleMessage()
@@ -78,22 +77,30 @@ void Subscriber::tryHandleMessage()
 void Subscriber::subscribe()
 {
   QMutexLocker l(&m_mutex);
-  RosThread::instance()->finalize(m_subscription);
+  
+  if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
+  {
+    qWarning() << "Failed to finalize subscription!" << rcl_get_error_string_safe();
+    rcl_reset_error();
+  }
   m_subscription = rcl_get_zero_initialized_subscription();
 
-  qDebug() << m_message_definition << m_data_type << m_topic_name;
   if(not m_data_type.isEmpty() and not m_topic_name.isEmpty())
   {
     m_message_definition = MessageDefinition::get(m_data_type);
-  qDebug() << m_message_definition << m_data_type;
-    emit(messageDefinitionChanged());
-    rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
-    if(rcl_subscription_init(&m_subscription, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &subscription_ops) != RCL_RET_OK)
+    if(m_message_definition)
     {
-      qWarning() << "Failed to initialize subscriber: " << m_topic_name;
-      rcutils_reset_error();
+      emit(messageDefinitionChanged());
+      rcl_subscription_options_t subscription_ops = rcl_subscription_get_default_options();
+      qDebug() << m_message_definition << m_message_definition->typeSupport();
+      if(rcl_subscription_init(&m_subscription, RosThread::instance()->rclNode(), m_message_definition->typeSupport(), qPrintable(m_topic_name), &subscription_ops) != RCL_RET_OK)
+      {
+        qWarning() << "Failed to initialize subscriber: " << m_topic_name;
+        rcutils_reset_error();
+      }
+    } else {
+      qWarning() << "Failed to get message definition for: " << m_data_type;
     }
-
   }
 }
 

@@ -25,8 +25,8 @@ public:
   void unregisterSubscriber(Subscriber* _subscriber);
   void registerClient(ServiceClient* _client);
   void unregisterClient(ServiceClient* _client);
-  void finalize(rcl_subscription_t _subscription);
-  void finalize(rcl_client_t _client);
+  void requestSubscriptionUpdate(Subscriber* _subscriber);
+  void requestServiceClientUpdate(ServiceClient* _client);
 protected:
   void run();
   void wakeUpLoop();
@@ -41,6 +41,8 @@ private:
   QMutex m_mutex_finalize;
   QList<rcl_subscription_t> m_subscriptionsToFinalize;
   QList<rcl_client_t> m_clientsToFinalize;
+  QList<Subscriber*> m_subscriptionsToUpdate;
+  QList<ServiceClient*> m_clientsToUpdate;
   bool m_running;
 };
 

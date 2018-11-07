@@ -17,7 +17,6 @@ ServiceClient::ServiceClient(QObject* _parent) : RosObject(_parent), m_client(rc
 ServiceClient::~ServiceClient()
 {
   QMutexLocker l(&m_mutex);
-  RosThread::instance()->finalize(m_client);
   RosThread::instance()->unregisterClient(this);
 }
 
@@ -25,14 +24,14 @@ void ServiceClient::setDataType(const QString& _dataType)
 {
   m_data_type = _dataType;
   emit(dataTypeChanged());
-  start_client();
+  RosThread::instance()->requestServiceClientUpdate(this);
 }
 
 void ServiceClient::setServiceName(const QString& _serviceName)
 {
   m_service_name = _serviceName;
   emit(serviceNameChanged());
-  start_client();
+  RosThread::instance()->requestServiceClientUpdate(this);
 }
 
 bool ServiceClient::call(const QVariant& _message)
@@ -110,7 +109,11 @@ void ServiceClient::tryHandleAnswer()
 void ServiceClient::start_client()
 {
   QMutexLocker l(&m_mutex);
-  RosThread::instance()->finalize(m_client);
+  if(rcl_client_fini(&m_client, RosThread::instance()->rclNode()) != RCL_RET_OK)
+  {
+    qWarning() << "Failed to finalize client!" << rcl_get_error_string_safe();
+    rcl_reset_error();
+  }
   m_client = rcl_get_zero_initialized_client();
 
   if(not m_data_type.isEmpty() and not m_service_name.isEmpty())

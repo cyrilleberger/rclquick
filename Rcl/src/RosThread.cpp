@@ -69,6 +69,7 @@ void RosThread::registerClient(ServiceClient* _client)
 void RosThread::unregisterClient(ServiceClient* _client)
 {
   QMutexLocker l(&m_mutex);
+  m_clientsToFinalize.append(_client->m_client);
   m_clients.removeAll(_client);
   wakeUpLoop();
 }
@@ -83,21 +84,23 @@ void RosThread::registerSubscriber(Subscriber* _subscriber)
 void RosThread::unregisterSubscriber(Subscriber* _subscriber)
 {
   QMutexLocker l(&m_mutex);
+  m_subscriptionsToFinalize.append(_subscriber->m_subscription);
   m_subscribers.removeAll(_subscriber);
   wakeUpLoop();
 }
 
-void RosThread::finalize(rcl_subscription_t _subscription)
+void RosThread::requestSubscriptionUpdate(Subscriber* _subscriber)
 {
   QMutexLocker l(&m_mutex_finalize);
-  m_subscriptionsToFinalize.append(_subscription);
+  m_subscriptionsToUpdate.append(_subscriber);
   wakeUpLoop();
 }
 
-void RosThread::finalize(rcl_client_t _client)
+
+void RosThread::requestServiceClientUpdate(ServiceClient* _client)
 {
   QMutexLocker l(&m_mutex_finalize);
-  m_clientsToFinalize.append(_client);
+  m_clientsToUpdate.append(_client);
   wakeUpLoop();
 }
 
@@ -116,6 +119,22 @@ void RosThread::run()
   });
   while(m_running)
   {
+    {
+      QMutexLocker l(&m_mutex);
+      for(Subscriber* sub : m_subscriptionsToUpdate)
+      {
+        sub->subscribe();
+      }
+      m_subscriptionsToUpdate.clear();
+    }
+    {
+      QMutexLocker l(&m_mutex);
+      for(ServiceClient* cl : m_clientsToUpdate)
+      {
+        cl->start_client();
+      }
+      m_clientsToUpdate.clear();
+    }
     {
       QMutexLocker l(&m_mutex);
       // Handle subscription
@@ -148,7 +167,7 @@ void RosThread::run()
       
       for(int i = 0; i < m_subscribers.size(); ++i)
       {
-        
+        QMutexLocker l2(&m_subscribers[i]->m_mutex);
         if(rcl_subscription_is_valid(&m_subscribers[i]->m_subscription, NULL))
         {
           if(rcl_wait_set_add_subscription(&wait_set, &m_subscribers[i]->m_subscription) != RCL_RET_OK)
@@ -161,6 +180,7 @@ void RosThread::run()
       }
       for(int i = 0; i < m_clients.size(); ++i)
       {
+        QMutexLocker l2(&m_clients[i]->m_mutex);
         if(rcl_client_is_valid(&m_clients[i]->m_client, NULL))
         {
           if(rcl_wait_set_add_client(&wait_set, &m_clients[i]->m_client) != RCL_RET_OK)
@@ -191,6 +211,7 @@ void RosThread::run()
         rcl_reset_error();
       }
     }
+    m_subscriptionsToFinalize.clear();
     for(rcl_client_t client : m_clientsToFinalize)
     {
       if(rcl_client_fini(&client, &m_rcl_node) != RCL_RET_OK)
@@ -199,7 +220,7 @@ void RosThread::run()
         rcl_reset_error();
       }
     }
-    
+    m_clientsToFinalize.clear();
   }
 }
 
