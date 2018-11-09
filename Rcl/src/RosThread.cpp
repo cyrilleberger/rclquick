@@ -33,12 +33,12 @@ RosThread* RosThread::instance()
       ros_argv_buffers.append(buffer);
     }
     
-    delete[] ros_argv;
-    
     if(rcl_init(ros_arguments.size(), ros_argv, rcl_get_default_allocator()) != RCL_RET_OK)
     {
       qFatal("Failed to initialize rmw implementation: %s", rcl_get_error_string_safe());
     }
+    
+    delete[] ros_argv;
     
     QString ros_name = QProcessEnvironment::systemEnvironment().value("ROS_NAME");
     if(ros_name.isEmpty())
@@ -222,6 +222,16 @@ void RosThread::run()
     }
     m_clientsToFinalize.clear();
   }
+  if(rcl_node_fini(&m_rcl_node) != RCL_RET_OK)
+  {
+    qFatal("Failed to finalize node: %s", rcl_get_error_string_safe());
+  }
+  if(rcl_shutdown() != RCL_RET_OK)
+  {
+    qFatal("Failed to shutdown: %s", rcl_get_error_string_safe());
+  }
+  
+  qDebug() << "done execution";
 }
 
 
