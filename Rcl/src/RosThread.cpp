@@ -71,6 +71,7 @@ void RosThread::unregisterClient(ServiceClient* _client)
   QMutexLocker l(&m_mutex);
   m_clientsToFinalize.append(_client->m_client);
   m_clients.removeAll(_client);
+  m_clientsToUpdate.removeAll(_client);
   wakeUpLoop();
 }
 
@@ -86,6 +87,7 @@ void RosThread::unregisterSubscriber(Subscriber* _subscriber)
   QMutexLocker l(&m_mutex);
   m_subscriptionsToFinalize.append(_subscriber->m_subscription);
   m_subscribers.removeAll(_subscriber);
+  m_subscriptionsToUpdate.removeAll(_subscriber);
   wakeUpLoop();
 }
 
