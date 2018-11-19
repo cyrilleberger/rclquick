@@ -11,6 +11,8 @@
 #include "ServiceClient.h"
 #include "Subscriber.h"
 
+
+
 RosThread::RosThread() : m_rcl_node(rcl_get_zero_initialized_node()), m_wake_up_loop(rcl_get_zero_initialized_guard_condition())
 {
   
@@ -19,9 +21,11 @@ RosThread::RosThread() : m_rcl_node(rcl_get_zero_initialized_node()), m_wake_up_
 RosThread* RosThread::instance()
 {
   static RosThread* rt = nullptr;
+  static QMutex mutex;
   if(not rt)
   {
-    
+    QMutexLocker l(&mutex);
+    if(rt) return rt;
     QStringList ros_arguments = QProcessEnvironment::systemEnvironment().value("ROS_ARGUMENTS").split(' ');
     QList<QByteArray> ros_argv_buffers;
     char** ros_argv = new char*[ros_arguments.size()];
@@ -61,6 +65,7 @@ RosThread* RosThread::instance()
 
 void RosThread::registerClient(ServiceClient* _client)
 {
+  Q_ASSERT(_client);
   QMutexLocker l(&m_mutex);
   m_clients.append(_client);
   wakeUpLoop();
@@ -68,7 +73,9 @@ void RosThread::registerClient(ServiceClient* _client)
 
 void RosThread::unregisterClient(ServiceClient* _client)
 {
-  QMutexLocker l(&m_mutex);
+  Q_ASSERT(_client);
+  QMutexLocker l1(&m_mutex);
+  QMutexLocker l2(&m_mutex_finalize);
   m_clientsToFinalize.append(_client->m_client);
   m_clients.removeAll(_client);
   m_clientsToUpdate.removeAll(_client);
@@ -77,6 +84,7 @@ void RosThread::unregisterClient(ServiceClient* _client)
 
 void RosThread::registerSubscriber(Subscriber* _subscriber)
 {
+  Q_ASSERT(_subscriber);
   QMutexLocker l(&m_mutex);
   m_subscribers.append(_subscriber);
   wakeUpLoop();
@@ -84,7 +92,9 @@ void RosThread::registerSubscriber(Subscriber* _subscriber)
 
 void RosThread::unregisterSubscriber(Subscriber* _subscriber)
 {
-  QMutexLocker l(&m_mutex);
+  Q_ASSERT(_subscriber);
+  QMutexLocker l1(&m_mutex);
+  QMutexLocker l2(&m_mutex_finalize);
   m_subscriptionsToFinalize.append(_subscriber->m_subscription);
   m_subscribers.removeAll(_subscriber);
   m_subscriptionsToUpdate.removeAll(_subscriber);
@@ -93,7 +103,8 @@ void RosThread::unregisterSubscriber(Subscriber* _subscriber)
 
 void RosThread::requestSubscriptionUpdate(Subscriber* _subscriber)
 {
-  QMutexLocker l(&m_mutex_finalize);
+  Q_ASSERT(_subscriber);
+  QMutexLocker l(&m_mutex);
   m_subscriptionsToUpdate.append(_subscriber);
   wakeUpLoop();
 }
@@ -101,7 +112,7 @@ void RosThread::requestSubscriptionUpdate(Subscriber* _subscriber)
 
 void RosThread::requestServiceClientUpdate(ServiceClient* _client)
 {
-  QMutexLocker l(&m_mutex_finalize);
+  QMutexLocker l(&m_mutex);
   m_clientsToUpdate.append(_client);
   wakeUpLoop();
 }
@@ -125,6 +136,7 @@ void RosThread::run()
       QMutexLocker l(&m_mutex);
       for(Subscriber* sub : m_subscriptionsToUpdate)
       {
+        Q_ASSERT(sub);
         sub->subscribe();
       }
       m_subscriptionsToUpdate.clear();
