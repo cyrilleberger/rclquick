@@ -1,7 +1,10 @@
 #ifndef ROSTHREAD_H
 #define ROSTHREAD_H
 
+#include <functional>
+
 #include <QMutex>
+#include <QMultiHash>
 #include <QThread>
 #include <QThreadPool>
 
@@ -12,6 +15,7 @@
 
 class Subscriber;
 class ServiceClient;
+class RosObject;
 
 class RosThread : public QThread
 {
@@ -25,8 +29,12 @@ public:
   void unregisterSubscriber(Subscriber* _subscriber);
   void registerClient(ServiceClient* _client);
   void unregisterClient(ServiceClient* _client);
-  void requestSubscriptionUpdate(Subscriber* _subscriber);
-  void requestServiceClientUpdate(ServiceClient* _client);
+  void registerAction(RosObject* _object, const std::function<void()>& _action);
+  template<typename _T_>
+  void registerAction(_T_* _object, void (_T_::*member)())
+  {
+    registerAction(_object, std::bind(member, _object));
+  }
 protected:
   void run();
   void wakeUpLoop();
@@ -35,14 +43,10 @@ private:
   quint64 m_startTime;
   QThreadPool m_threadPool;
   QMutex m_mutex;
+  QMultiHash<RosObject*, std::function<void()>> m_actions;
   QList<Subscriber*>    m_subscribers;
   QList<ServiceClient*> m_clients;
   rcl_guard_condition_t m_wake_up_loop;
-  QMutex m_mutex_finalize;
-  QList<rcl_subscription_t> m_subscriptionsToFinalize;
-  QList<rcl_client_t> m_clientsToFinalize;
-  QList<Subscriber*> m_subscriptionsToUpdate;
-  QList<ServiceClient*> m_clientsToUpdate;
   bool m_running;
 };
 

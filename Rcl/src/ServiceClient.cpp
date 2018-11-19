@@ -24,14 +24,14 @@ void ServiceClient::setDataType(const QString& _dataType)
 {
   m_data_type = _dataType;
   emit(dataTypeChanged());
-  RosThread::instance()->requestServiceClientUpdate(this);
+  RosThread::instance()->registerAction(this, &ServiceClient::start_client);
 }
 
 void ServiceClient::setServiceName(const QString& _serviceName)
 {
   m_service_name = _serviceName;
   emit(serviceNameChanged());
-  RosThread::instance()->requestServiceClientUpdate(this);
+  RosThread::instance()->registerAction(this, &ServiceClient::start_client);
 }
 
 bool ServiceClient::call(const QVariant& _message)

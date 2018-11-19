@@ -23,14 +23,14 @@ void Subscriber::setTopicName(const QString& _topicName)
 {
   m_topic_name = _topicName;
   emit(topicNameChanged());
-  RosThread::instance()->requestSubscriptionUpdate(this);
+  RosThread::instance()->registerAction(this, &Subscriber::subscribe);
 }
 
 void Subscriber::setDataType(const QString& _topicName)
 {
   m_data_type = _topicName;
   emit(dataTypeChanged());
-  RosThread::instance()->requestSubscriptionUpdate(this);
+  RosThread::instance()->registerAction(this, &Subscriber::subscribe);
 }
 
 void Subscriber::tryHandleMessage()

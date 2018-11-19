@@ -74,11 +74,17 @@ void RosThread::registerClient(ServiceClient* _client)
 void RosThread::unregisterClient(ServiceClient* _client)
 {
   Q_ASSERT(_client);
-  QMutexLocker l1(&m_mutex);
-  QMutexLocker l2(&m_mutex_finalize);
-  m_clientsToFinalize.append(_client->m_client);
+  QMutexLocker l(&m_mutex);
+  rcl_client_t client = _client->m_client;
+  m_actions.insert(nullptr, [client, this]() mutable { 
+    if(rcl_client_fini(&client, &m_rcl_node) != RCL_RET_OK)
+    {
+      qWarning() << "Failed to finalize client!" << rcl_get_error_string_safe();
+      rcl_reset_error();
+    }
+  });
   m_clients.removeAll(_client);
-  m_clientsToUpdate.removeAll(_client);
+  m_actions.remove(_client);
   wakeUpLoop();
 }
 
@@ -93,27 +99,25 @@ void RosThread::registerSubscriber(Subscriber* _subscriber)
 void RosThread::unregisterSubscriber(Subscriber* _subscriber)
 {
   Q_ASSERT(_subscriber);
-  QMutexLocker l1(&m_mutex);
-  QMutexLocker l2(&m_mutex_finalize);
-  m_subscriptionsToFinalize.append(_subscriber->m_subscription);
+  QMutexLocker l(&m_mutex);
+  rcl_subscription_t subscribtion = _subscriber->m_subscription;
+  m_actions.insert(nullptr, [subscribtion, this]() mutable { 
+    if(rcl_subscription_fini(&subscribtion, &m_rcl_node) != RCL_RET_OK)
+    {
+      qWarning() << "Failed to finalize subscription!" << rcl_get_error_string_safe();
+      rcl_reset_error();
+    }
+  });
   m_subscribers.removeAll(_subscriber);
-  m_subscriptionsToUpdate.removeAll(_subscriber);
+  m_actions.remove(_subscriber);
   wakeUpLoop();
 }
 
-void RosThread::requestSubscriptionUpdate(Subscriber* _subscriber)
+void RosThread::registerAction(RosObject* _object, const std::function<void()>& _action)
 {
-  Q_ASSERT(_subscriber);
+  Q_ASSERT(_object);
   QMutexLocker l(&m_mutex);
-  m_subscriptionsToUpdate.append(_subscriber);
-  wakeUpLoop();
-}
-
-
-void RosThread::requestServiceClientUpdate(ServiceClient* _client)
-{
-  QMutexLocker l(&m_mutex);
-  m_clientsToUpdate.append(_client);
+  m_actions.insert(_object, _action);
   wakeUpLoop();
 }
 
@@ -134,20 +138,11 @@ void RosThread::run()
   {
     {
       QMutexLocker l(&m_mutex);
-      for(Subscriber* sub : m_subscriptionsToUpdate)
+      for(const std::function<void()>& act : m_actions)
       {
-        Q_ASSERT(sub);
-        sub->subscribe();
+        act();
       }
-      m_subscriptionsToUpdate.clear();
-    }
-    {
-      QMutexLocker l(&m_mutex);
-      for(ServiceClient* cl : m_clientsToUpdate)
-      {
-        cl->start_client();
-      }
-      m_clientsToUpdate.clear();
+      m_actions.clear();
     }
     {
       QMutexLocker l(&m_mutex);
@@ -216,25 +211,6 @@ void RosThread::run()
     {
       qFatal("Failed to finalize wait_set %s", rcl_get_error_string_safe());
     }
-    QMutexLocker l(&m_mutex_finalize);
-    for(rcl_subscription_t subscription : m_subscriptionsToFinalize)
-    {
-      if(rcl_subscription_fini(&subscription, &m_rcl_node) != RCL_RET_OK)
-      {
-        qWarning() << "Failed to finalize subscription!" << rcl_get_error_string_safe();
-        rcl_reset_error();
-      }
-    }
-    m_subscriptionsToFinalize.clear();
-    for(rcl_client_t client : m_clientsToFinalize)
-    {
-      if(rcl_client_fini(&client, &m_rcl_node) != RCL_RET_OK)
-      {
-        qWarning() << "Failed to finalize client!" << rcl_get_error_string_safe();
-        rcl_reset_error();
-      }
-    }
-    m_clientsToFinalize.clear();
   }
   if(rcl_node_fini(&m_rcl_node) != RCL_RET_OK)
   {
