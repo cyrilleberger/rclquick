@@ -1,5 +1,6 @@
 #include "RosWrapper.h"
 
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDebug>
 #include <QJSValue>
@@ -64,6 +65,30 @@ QString RosWrapper::toUuid(const QVariant& _list) const
   return uuid.toString();
 }
 
+QByteArray RosWrapper::sha3_512(const QVariant& _value) const
+{
+  QCryptographicHash hash(QCryptographicHash::Sha3_512);
+  switch(_value.type())
+  {
+    case QVariant::ByteArray:
+      hash.addData(_value.toByteArray());
+      break;
+    case QVariant::String:
+      hash.addData(_value.toString().toUtf8());
+      break;
+    default:
+      if(_value.canConvert<QByteArray>())
+      {
+        hash.addData(_value.toByteArray());
+      } else if(_value.canConvert<QString>()) {
+        hash.addData(_value.toString().toUtf8());
+      } else {
+        qWarning() << "Cannot compute sha3_512 for value:" << _value;
+        return QByteArray();
+      }
+  }
+  return hash.result();
+}
 
 #if 0
 

@@ -16,6 +16,7 @@ public:
   Q_INVOKABLE QString toHex(const QByteArray& _array) const;
   Q_INVOKABLE bool sameAs(const QVariant& _a, const QVariant& _b) const;
   Q_INVOKABLE QString toUuid(const QVariant& _list) const;
+  Q_INVOKABLE QByteArray sha3_512(const QVariant& _value) const;
 //   Q_INVOKABLE QVariant getParam(const QString& _name) const;
 protected:
 };
