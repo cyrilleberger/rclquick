@@ -56,7 +56,7 @@ bool ServiceClient::call(const QVariant& _message)
 
   if(rcl_send_request(&m_client, message_data.data(), &m_sequence_number) != RCL_RET_OK)
   {
-    qWarning() << "Failed to send request on service: " << m_service_name << rcl_get_error_string_safe();
+    qWarning() << "Failed to send request on service: " << m_service_name << rcl_get_error_string().str;
     rcl_reset_error();
     emit(callFailed());
     m_called = false;
@@ -96,7 +96,7 @@ void ServiceClient::tryHandleAnswer()
         break;
       default:
         emit(callFailed());
-        qWarning() << "Failed to get answer service: " << m_service_name << rcl_get_error_string_safe();
+        qWarning() << "Failed to get answer service: " << m_service_name << rcl_get_error_string().str;
         rcl_reset_error();
         m_called = false;
         emit(callInProgressChanged());
@@ -111,7 +111,7 @@ void ServiceClient::start_client()
   QMutexLocker l(&m_mutex);
   if(rcl_client_fini(&m_client, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
-    qWarning() << "Failed to finalize client!" << rcl_get_error_string_safe();
+    qWarning() << "Failed to finalize client!" << rcl_get_error_string().str;
     rcl_reset_error();
   }
   m_client = rcl_get_zero_initialized_client();
@@ -125,7 +125,7 @@ void ServiceClient::start_client()
     rcl_client_options_t client_ops = rcl_client_get_default_options();
     if(rcl_client_init(&m_client, RosThread::instance()->rclNode(), m_service_definition->typeSupport(), qPrintable(m_service_name), &client_ops) != RCL_RET_OK)
     {
-      qWarning() << "Failed to initialize client: " << m_service_name << rcl_get_error_string_safe();
+      qWarning() << "Failed to initialize client: " << m_service_name << rcl_get_error_string().str;
       rcl_reset_error();
     }
   }

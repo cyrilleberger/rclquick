@@ -66,7 +66,7 @@ void Subscriber::tryHandleMessage()
         // I am guessing answer is not available yet we get this error message
         break;
       default:
-        qWarning() << "Failed to get subscribtion message" << m_topic_name << rcl_get_error_string_safe();
+        qWarning() << "Failed to get subscribtion message" << m_topic_name << rcl_get_error_string().str;
         rcl_reset_error();
         break;
     }
@@ -80,7 +80,7 @@ void Subscriber::subscribe()
   
   if(rcl_subscription_fini(&m_subscription, RosThread::instance()->rclNode()) != RCL_RET_OK)
   {
-    qWarning() << "Failed to finalize subscription!" << rcl_get_error_string_safe();
+    qWarning() << "Failed to finalize subscription!" << rcl_get_error_string().str;
     rcl_reset_error();
   }
   m_subscription = rcl_get_zero_initialized_subscription();

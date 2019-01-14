@@ -22,10 +22,13 @@ RosThread* RosThread::instance()
 {
   static RosThread* rt = nullptr;
   static QMutex mutex;
+  static rcl_init_options_t rcl_init_options;
+  
+  QMutexLocker l(&mutex);
   if(not rt)
   {
-    QMutexLocker l(&mutex);
-    if(rt) return rt;
+    rt = new RosThread();
+    
     QStringList ros_arguments = QProcessEnvironment::systemEnvironment().value("ROS_ARGUMENTS").split(' ');
     QList<QByteArray> ros_argv_buffers;
     char** ros_argv = new char*[ros_arguments.size()];
@@ -37,9 +40,12 @@ RosThread* RosThread::instance()
       ros_argv_buffers.append(buffer);
     }
     
-    if(rcl_init(ros_arguments.size(), ros_argv, rcl_get_default_allocator()) != RCL_RET_OK)
+    rt->m_rcl_context = rcl_get_zero_initialized_context();
+    rcl_init_options = rcl_get_zero_initialized_init_options();
+    
+    if(rcl_init(ros_arguments.size(), ros_argv, &rcl_init_options, &rt->m_rcl_context) != RCL_RET_OK)
     {
-      qFatal("Failed to initialize rmw implementation: %s", rcl_get_error_string_safe());
+      qFatal("Failed to initialize rmw implementation: %s", rcl_get_error_string().str);
     }
     
     delete[] ros_argv;
@@ -52,11 +58,10 @@ RosThread* RosThread::instance()
 
     QString ros_namespace = QProcessEnvironment::systemEnvironment().value("ROS_NAMESPACE");
 
-    rt = new RosThread();
     rcl_node_options_t node_options = rcl_node_get_default_options();
-    if(rcl_node_init(&rt->m_rcl_node, qPrintable(ros_name), qPrintable(ros_namespace), &node_options))
+    if(rcl_node_init(&rt->m_rcl_node, qPrintable(ros_name), qPrintable(ros_namespace), &rt->m_rcl_context, &node_options))
     {
-      qFatal("Failed to initialize node: %s", rcl_get_error_string_safe());
+      qFatal("Failed to initialize node: %s", rcl_get_error_string().str);
     }
     
   }
@@ -79,7 +84,7 @@ void RosThread::unregisterClient(ServiceClient* _client)
   m_actions.insert(nullptr, [client, this]() mutable { 
     if(rcl_client_fini(&client, &m_rcl_node) != RCL_RET_OK)
     {
-      qWarning() << "Failed to finalize client!" << rcl_get_error_string_safe();
+      qWarning() << "Failed to finalize client!" << rcl_get_error_string().str;
       rcl_reset_error();
     }
   });
@@ -104,7 +109,7 @@ void RosThread::unregisterSubscriber(Subscriber* _subscriber)
   m_actions.insert(nullptr, [subscribtion, this]() mutable { 
     if(rcl_subscription_fini(&subscribtion, &m_rcl_node) != RCL_RET_OK)
     {
-      qWarning() << "Failed to finalize subscription!" << rcl_get_error_string_safe();
+      qWarning() << "Failed to finalize subscription!" << rcl_get_error_string().str;
       rcl_reset_error();
     }
   });
@@ -125,7 +130,7 @@ void RosThread::run()
 {
   m_running = true;
   m_startTime = now();
-  if(rcl_guard_condition_init(&m_wake_up_loop, rcl_guard_condition_get_default_options()) != RCL_RET_OK)
+  if(rcl_guard_condition_init(&m_wake_up_loop, &m_rcl_context, rcl_guard_condition_get_default_options()) != RCL_RET_OK)
   {
     qFatal("Failed to initialize wake up loop");
   }
@@ -169,19 +174,19 @@ void RosThread::run()
         qFatal("Failed to initialize wait_set");
       }
       
-      if(rcl_wait_set_add_guard_condition(&wait_set, &m_wake_up_loop) != RCL_RET_OK)
+      if(rcl_wait_set_add_guard_condition(&wait_set, &m_wake_up_loop, NULL) != RCL_RET_OK)
       {
-        qFatal("Error when adding guard condition to wait_set %s", rcl_get_error_string_safe());
+        qFatal("Error when adding guard condition to wait_set %s", rcl_get_error_string().str);
       }
       
       for(int i = 0; i < m_subscribers.size(); ++i)
       {
         QMutexLocker l2(&m_subscribers[i]->m_mutex);
-        if(rcl_subscription_is_valid(&m_subscribers[i]->m_subscription, NULL))
+        if(rcl_subscription_is_valid(&m_subscribers[i]->m_subscription))
         {
-          if(rcl_wait_set_add_subscription(&wait_set, &m_subscribers[i]->m_subscription) != RCL_RET_OK)
+          if(rcl_wait_set_add_subscription(&wait_set, &m_subscribers[i]->m_subscription, NULL) != RCL_RET_OK)
           {
-            qFatal("Error when adding subscription to wait_set %s", rcl_get_error_string_safe());
+            qFatal("Error when adding subscription to wait_set %s", rcl_get_error_string().str);
           }
         } else {
           rcutils_reset_error();
@@ -190,11 +195,11 @@ void RosThread::run()
       for(int i = 0; i < m_clients.size(); ++i)
       {
         QMutexLocker l2(&m_clients[i]->m_mutex);
-        if(rcl_client_is_valid(&m_clients[i]->m_client, NULL))
+        if(rcl_client_is_valid(&m_clients[i]->m_client))
         {
-          if(rcl_wait_set_add_client(&wait_set, &m_clients[i]->m_client) != RCL_RET_OK)
+          if(rcl_wait_set_add_client(&wait_set, &m_clients[i]->m_client, NULL) != RCL_RET_OK)
           {
-            qFatal("Error when adding client to wait_set %s", rcl_get_error_string_safe());
+            qFatal("Error when adding client to wait_set %s", rcl_get_error_string().str);
           }
         } else {
           rcutils_reset_error();
@@ -204,21 +209,21 @@ void RosThread::run()
     rcl_ret_t ret_wait = rcl_wait(&wait_set, -1);
     if(ret_wait == RCL_RET_ERROR or ret_wait == RCL_RET_INVALID_ARGUMENT)
     {
-      qFatal("Failed to wait: %s", rcl_get_error_string_safe());
+      qFatal("Failed to wait: %s", rcl_get_error_string().str);
     }
     rcl_reset_error();
     if(rcl_wait_set_fini(&wait_set) != RCL_RET_OK)
     {
-      qFatal("Failed to finalize wait_set %s", rcl_get_error_string_safe());
+      qFatal("Failed to finalize wait_set %s", rcl_get_error_string().str);
     }
   }
   if(rcl_node_fini(&m_rcl_node) != RCL_RET_OK)
   {
-    qFatal("Failed to finalize node: %s", rcl_get_error_string_safe());
+    qFatal("Failed to finalize node: %s", rcl_get_error_string().str);
   }
-  if(rcl_shutdown() != RCL_RET_OK)
+  if(rcl_shutdown(&m_rcl_context) != RCL_RET_OK)
   {
-    qFatal("Failed to shutdown: %s", rcl_get_error_string_safe());
+    qFatal("Failed to shutdown: %s", rcl_get_error_string().str);
   }
   
   qDebug() << "done execution";
@@ -229,7 +234,7 @@ void RosThread::wakeUpLoop()
 {
   if(rcl_trigger_guard_condition(&m_wake_up_loop) != RCL_RET_OK)
   {
-    qWarning() << "Failed to wake up loop: " << rcl_get_error_string_safe();
+    qWarning() << "Failed to wake up loop: " << rcl_get_error_string().str;
     rcl_reset_error();
   }
 }
@@ -242,7 +247,7 @@ quint64 RosThread::now() const
   {
     qFatal("Failed to initialize time point.");
   }
-  rcl_time_point_t ns;
+  rcl_time_point_value_t ns;
   if(rcl_clock_get_now(&clock, &ns) != RCL_RET_OK)
   {
     qFatal("Failed to get current time.");
@@ -251,5 +256,5 @@ quint64 RosThread::now() const
   {
     qFatal("Failed to finalize clock.");
   }
-  return ns.nanoseconds;
+  return ns;
 }

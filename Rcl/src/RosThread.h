@@ -48,6 +48,7 @@ private:
   QList<ServiceClient*> m_clients;
   rcl_guard_condition_t m_wake_up_loop;
   bool m_running;
+  rcl_context_t m_rcl_context;
 };
 
 #endif // ROSTHREAD_H
