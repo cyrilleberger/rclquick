@@ -42,6 +42,10 @@ RosThread* RosThread::instance()
     
     rt->m_rcl_context = rcl_get_zero_initialized_context();
     rcl_init_options = rcl_get_zero_initialized_init_options();
+    if(rcl_init_options_init(&rcl_init_options, rcl_get_default_allocator()) != RCL_RET_OK)
+    {
+      qFatal("Failed to initialize initialise options: %s", rcl_get_error_string().str);
+    }
     
     if(rcl_init(ros_arguments.size(), ros_argv, &rcl_init_options, &rt->m_rcl_context) != RCL_RET_OK)
     {
