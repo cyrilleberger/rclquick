@@ -45,7 +45,7 @@ void Subscriber::tryHandleMessage()
     message_info.from_intra_process = false;
     
     
-    rcl_ret_t status = rcl_take(&m_subscription, data.data(), &message_info);
+    rcl_ret_t status = rcl_take(&m_subscription, data.data(), &message_info, nullptr);
 
     switch(status)
     {

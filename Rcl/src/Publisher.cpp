@@ -62,7 +62,7 @@ void Publisher::publish(const QVariant& _message)
     QVariantMap message = m_message_definition->variantToMap(_message);
     MessageData message_data = m_message_definition->serializeMessage(message);
     
-    if(rcl_publish(&m_publisher, message_data.data()) != RCL_RET_OK)
+    if(rcl_publish(&m_publisher, message_data.data(), nullptr) != RCL_RET_OK)
     {
       qWarning() << "Failed to publish: " << m_topic_name;
       rcutils_reset_error();

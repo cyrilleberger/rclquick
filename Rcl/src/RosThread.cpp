@@ -173,7 +173,7 @@ void RosThread::run()
     rcl_wait_set_t wait_set = rcl_get_zero_initialized_wait_set();
     {
       QMutexLocker l(&m_mutex);
-      if(rcl_wait_set_init(&wait_set, m_subscribers.size(), 1, 0, m_clients.size(), 0, rcl_get_default_allocator()) != RCL_RET_OK)
+      if(rcl_wait_set_init(&wait_set, m_subscribers.size(), 1, 0, m_clients.size(), 0, 0, &m_rcl_context, rcl_get_default_allocator()) != RCL_RET_OK)
       {
         qFatal("Failed to initialize wait_set");
       }
