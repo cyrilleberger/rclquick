@@ -1,6 +1,6 @@
 #include <QObject>
 
-#include <rosidl_generator_c/service_type_support_struct.h>
+#include <rosidl_runtime_c/service_type_support_struct.h>
 
 class MessageDefinition;
 

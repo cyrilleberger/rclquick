@@ -3,8 +3,8 @@
 #include <cstring>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
-#include <builtin_interfaces/msg/time__struct.h>
-#include <rosidl_generator_c/string.h>
+#include <builtin_interfaces/msg/time.h>
+#include <rosidl_runtime_c/string.h>
 
 #include <QCryptographicHash>
 #include <QDebug>
@@ -24,7 +24,7 @@ namespace {
     Q_UNUSED(_v);
   }
   template<>
-  inline void do_initialize<rosidl_generator_c__String>(rosidl_generator_c__String* _v)
+  inline void do_initialize<rosidl_runtime_c__String>(rosidl_runtime_c__String* _v)
   {
     _v->data      = nullptr;
     _v->size      = 0;
@@ -36,7 +36,7 @@ namespace {
     Q_UNUSED(_v);
   }
   template<>
-  inline void do_finalize<rosidl_generator_c__String>(rosidl_generator_c__String* _v)
+  inline void do_finalize<rosidl_runtime_c__String>(rosidl_runtime_c__String* _v)
   {
     free(_v->data);
     _v->data      = nullptr;
@@ -50,7 +50,7 @@ namespace {
     return QVariant::fromValue(*_v);
   }
   template<>
-  inline QVariant element_read_value<rosidl_generator_c__String>(const rosidl_generator_c__String* _v)
+  inline QVariant element_read_value<rosidl_runtime_c__String>(const rosidl_runtime_c__String* _v)
   {
     return QVariant::fromValue(QString::fromUtf8(_v->data, _v->size));
   }
@@ -68,7 +68,7 @@ namespace {
     *_data = _v.value<_T_>();
   }
   template<>
-  inline void element_write_value<rosidl_generator_c__String>(rosidl_generator_c__String* _data, const QVariant& _v)
+  inline void element_write_value<rosidl_runtime_c__String>(rosidl_runtime_c__String* _data, const QVariant& _v)
   {
     do_finalize(_data);
     QByteArray utf8str = _v.value<QString>().toUtf8();
@@ -181,7 +181,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       }
       if(baseType == "string")
       {
-        m_fields.append(new BaseTypeMessageField<rosidl_generator_c__String>(name, MessageField::Type::String, is_array, current_index));
+        m_fields.append(new BaseTypeMessageField<rosidl_runtime_c__String>(name, MessageField::Type::String, is_array, current_index));
       } else if(baseType == "float32")
       {
         m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32, is_array, current_index));
