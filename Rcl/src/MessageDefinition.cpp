@@ -159,7 +159,11 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
     QString line = _stream.readLine();
     int comment_char = line.indexOf('#');
     QStringRef ref = (comment_char >= 0) ? line.leftRef(comment_char) : QStringRef(&line);
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
     QVector<QStringRef>  l = ref.split(' ', QString::SkipEmptyParts);
+#else
+    QVector<QStringRef>  l = ref.split(' ', Qt::SkipEmptyParts);
+#endif
     if(l.size() == 2)
     {
       QString type = l[0].toString();
