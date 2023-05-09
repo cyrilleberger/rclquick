@@ -1,7 +1,7 @@
 #include "ServiceDefinition.h"
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
-
+#include <ament_index_cpp/get_package_prefix.hpp>
 
 #include <QCryptographicHash>
 #include <QDebug>
@@ -23,31 +23,40 @@ ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_t
   }
   const QString packagename = splited[0];
   const QString servicename = splited[1];
-  QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/srv/" + servicename + ".srv");
-
-  if(file.open(QIODevice::ReadOnly))
+  try
   {
-    QTextStream stream(&file);
-    QString data = file.readAll();
     
-    QStringList splited = data.split("---\n");
-    if(splited.size() != 2)
+    QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/srv/" + servicename + ".srv");
+
+    if(file.open(QIODevice::ReadOnly))
     {
-      qWarning() << "Invalid service definition: " << _type_name;
-      return;
+      QTextStream stream(&file);
+      QString data = file.readAll();
+      
+      QStringList splited = data.split("---\n");
+      if(splited.size() != 2)
+      {
+        qWarning() << "Invalid service definition: " << _type_name;
+        return;
+      }
+        
+      QTextStream request_definition(&splited[0]);
+      m_requestDefinition->parseDefinition(packagename, request_definition);
+      QTextStream answer_definition(&splited[1]);
+      m_answerDefinition->parseDefinition(packagename, answer_definition);
+      
+      m_is_valid = m_requestDefinition->isValid() and m_answerDefinition->isValid();
+      m_type_support = TypeSupport::getServiceTypeSupport(packagename, servicename);
+      m_is_valid = m_is_valid and m_type_support;
+      
+    } else {
+      qWarning() << "Failed to open: " << file.fileName();
     }
-    
-    QTextStream request_definition(&splited[0]);
-    m_requestDefinition->parseDefinition(packagename, request_definition);
-    QTextStream answer_definition(&splited[1]);
-    m_answerDefinition->parseDefinition(packagename, answer_definition);
-    
-    m_is_valid = m_requestDefinition->isValid() and m_answerDefinition->isValid();
-    m_type_support = TypeSupport::getServiceTypeSupport(packagename, servicename);
-    m_is_valid = m_is_valid and m_type_support;
-    
-  } else {
-    qWarning() << "Failed to open: " << file.fileName();
+    /* code */
+  }
+  catch(const ament_index_cpp::PackageNotFoundError& e)
+  {
+    qWarning() << "Cannot find package: " << packagename << " with error: " << e.what();
   }
   
 }

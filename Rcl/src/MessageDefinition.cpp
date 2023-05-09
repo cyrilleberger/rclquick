@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include <ament_index_cpp/get_package_prefix.hpp>
 #include <builtin_interfaces/msg/time.h>
 #include <rosidl_runtime_c/string.h>
 
@@ -138,15 +139,21 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
   }
   const QString packagename = splited[0];
   const QString messagename = splited[1];
-  QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/msg/" + messagename + ".msg");
-  if(file.open(QIODevice::ReadOnly))
+  try
   {
-    QTextStream stream(&file);
-    parseDefinition(packagename, stream);
-    m_typesupport = TypeSupport::getMessageTypeSupport(packagename, messagename);
-    m_valid = m_valid and m_typesupport;
-  } else {
-    qWarning() << "Failed to open: " << file.fileName();
+    QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/msg/" + messagename + ".msg");
+    if(file.open(QIODevice::ReadOnly))
+    {
+      QTextStream stream(&file);
+      parseDefinition(packagename, stream);
+      m_typesupport = TypeSupport::getMessageTypeSupport(packagename, messagename);
+      m_valid = m_valid and m_typesupport;
+    } else {
+      qWarning() << "Failed to open: " << file.fileName();
+    }
+  } catch(const ament_index_cpp::PackageNotFoundError& e)
+  {
+    qWarning() << "Cannot find package: " << packagename << " with error: " << e.what();
   }
 }
 

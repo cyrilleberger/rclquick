@@ -10,7 +10,7 @@ public:
   ServiceDefinition(const QString& _type_name);
   ~ServiceDefinition();
   static ServiceDefinition* get(const QString& _type_name);
-  bool isValid() const;
+  bool isValid() const { return m_is_valid; }
   MessageDefinition* requestDefinition() const { return m_requestDefinition; }
   MessageDefinition* answerDefinition() const  { return m_answerDefinition;  }
   const rosidl_service_type_support_t* typeSupport() { return m_type_support; }
