@@ -4,6 +4,8 @@
 
 #include <QtConcurrent/QtConcurrent>
 
+#include <rcl/graph.h>
+
 #include "MessageData.h"
 #include "MessageDefinition.h"
 #include "RosThread.h"
@@ -34,6 +36,26 @@ void ServiceClient::setServiceName(const QString& _serviceName)
   RosThread::instance()->registerAction(this, &ServiceClient::start_client);
 }
 
+void ServiceClient::setShouldWaitForAvailable(bool _v)
+{
+  m_shouldWaitForAvailable = _v;
+  emit(shouldWaitForAvailable());
+}
+
+bool ServiceClient::isAvailable() const
+{
+  bool is_ready;
+  rcl_ret_t ret = rcl_service_server_is_available(RosThread::instance()->rclNode(), &m_client, &is_ready);
+
+  if(ret != RCL_RET_OK)
+  {
+    qWarning() << "Failed to check for service server availability: " << rcl_get_error_string().str;
+    rcl_reset_error();
+    return false;
+  }
+  return is_ready;
+}
+
 bool ServiceClient::call(const QVariant& _message)
 {
   QMutexLocker l(&m_mutex);
@@ -47,8 +69,19 @@ bool ServiceClient::call(const QVariant& _message)
     qWarning() << "Service call in progress";
     return false;
   }
+  if(not m_client.impl)
+  {
+    qWarning() << "Client was not created for " << m_service_name << " of type " << m_data_type;
+    return false;
+  }
   m_called = true;
   emit(callInProgressChanged());
+
+  if(not isAvailable())
+  {
+    qWarning() << "Service '" << m_service_name << "' not available...";
+    return false;
+  }
 
   QVariantMap message = m_service_definition->requestDefinition()->variantToMap(_message);
   
@@ -119,14 +152,18 @@ void ServiceClient::start_client()
   if(not m_data_type.isEmpty() and not m_service_name.isEmpty())
   {
     m_service_definition = ServiceDefinition::get(m_data_type);
-    qDebug() << m_service_definition << m_service_definition->typeSupport();
     emit(serviceDefinitionChanged());
 
-    rcl_client_options_t client_ops = rcl_client_get_default_options();
-    if(rcl_client_init(&m_client, RosThread::instance()->rclNode(), m_service_definition->typeSupport(), qPrintable(m_service_name), &client_ops) != RCL_RET_OK)
+    if(m_service_definition and m_service_definition->isValid())
     {
-      qWarning() << "Failed to initialize client: " << m_service_name << rcl_get_error_string().str;
-      rcl_reset_error();
+      rcl_client_options_t client_ops = rcl_client_get_default_options();
+      if(rcl_client_init(&m_client, RosThread::instance()->rclNode(), m_service_definition->typeSupport(), qPrintable(m_service_name), &client_ops) != RCL_RET_OK)
+      {
+        qWarning() << "Failed to initialize client: " << m_service_name << rcl_get_error_string().str;
+        rcl_reset_error();
+      }
+    } else {
+      qWarning() << "Not a valid service definition for " << m_data_type;
     }
   }
 }
