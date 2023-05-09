@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
-import Ros 1.0
+import Rcl 1.0
 
 Row {
   id: root

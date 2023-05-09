@@ -1,4 +1,4 @@
-import Ros 1.0
+import Rcl 1.0
 import QtQuick 2.2
 import QtQuick.Window 2.0
 import QtCharts 2.1
