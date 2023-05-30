@@ -18,6 +18,7 @@ public:
   Q_INVOKABLE QString toUuid(const QVariant& _list) const;
   Q_INVOKABLE QByteArray sha3_512(const QVariant& _value) const;
 //   Q_INVOKABLE QVariant getParam(const QString& _name) const;
+  Q_INVOKABLE QString getNamespace() const;
 protected:
 };
 
