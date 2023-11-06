@@ -19,6 +19,7 @@ public:
   QVariant elementReadValue(const quint8* _data) const override;
   void elementWriteValue(quint8* _data, const QVariant& _value) const override;
   std::size_t elementSize() const override;
+  std::size_t elementAlignment() const override;
   MessageDefinition* messageDefinition() const { return m_md; }
 private:
   MessageDefinition* m_md;

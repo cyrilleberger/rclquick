@@ -88,7 +88,7 @@ namespace {
     *_data = builtin_interfaces__msg__Time{v["sec"].value<int>(), v["nanosec"].value<uint32_t>()};
   }
 }
-
+#include <iostream>
 template<typename _T_>
 class BaseTypeMessageField : public MessageField
 {
@@ -115,6 +115,10 @@ public:
   std::size_t elementSize() const override
   {
     return sizeof(_T_);
+  }
+  std::size_t elementAlignment() const override
+  {
+    return alignof(_T_);
   }
 };
 
@@ -171,7 +175,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
 #else
     QVector<QStringRef>  l = ref.split(' ', Qt::SkipEmptyParts);
 #endif
-    if(l.size() == 2)
+    if(l.size() == 2 or l.size() == 3)
     {
       QString type = l[0].toString();
       QString name = l[1].toString();
@@ -253,7 +257,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
         }
       }
       MessageField* last_field = m_fields.last();
-      current_index += last_field->fieldSize();
+      current_index = last_field->index() + last_field->fieldSize();
     } else if(l.size() == 4) {
       if(l[2] == "=")
       {
@@ -385,17 +389,16 @@ void MessageDefinition::serializeMessage(const QVariantMap& _hash, quint8* _buff
 
 std::size_t MessageDefinition::serializedLength() const
 {
-  std::size_t length = 0;
-  for(const MessageField* mf : m_fields)
-  {
-    length += mf->fieldSize();
-  }
-  return length;
+  if(m_fields.isEmpty()) return 0;
+
+  const MessageField* last_mf = m_fields.last();
+  return last_mf->index() + last_mf->fieldSize();
 }
 
 quint8* MessageDefinition::allocateZeroInitialised() const
 {
   quint8* data = reinterpret_cast<quint8*>(malloc(serializedLength()));
+  std::memset(data, 0, serializedLength());
   for(const MessageField* mf : m_fields)
   {
     mf->fieldInitialize(data + mf->index());
@@ -403,13 +406,13 @@ quint8* MessageDefinition::allocateZeroInitialised() const
   return data;
 }
 
-void MessageDefinition::disallocate(quint8* data) const
+void MessageDefinition::disallocate(quint8* _data) const
 {
   for(const MessageField* mf : m_fields)
   {
-    mf->fieldFinalize(data + mf->index());
+    mf->fieldFinalize(_data + mf->index());
   }
-  free(data);
+  free(_data);
 }
 
 

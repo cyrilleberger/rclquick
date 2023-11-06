@@ -24,25 +24,25 @@ public:
   };
   Q_ENUM(Type)
 public:
-  MessageField(const QString& _name, Type _type, bool _array, std::size_t _index) : m_name(_name), m_type(_type), m_is_array(_array), m_index(_index)
-  {
-  }
+  MessageField(const QString& _name, Type _type, bool _array, std::size_t _index);
   QString name() const { return m_name; }
   Type type() const { return m_type; }
   bool isArray() const { return m_is_array; }
-  std::size_t index() const { return m_index; }
+  std::size_t index() const;
 protected:
   virtual void elementInitialize(quint8* _data) const = 0;
   virtual void elementFinalize(quint8* _data) const = 0;
   virtual QVariant elementReadValue(const quint8* _data) const = 0;
   virtual void elementWriteValue(quint8* _data, const QVariant& _value) const = 0;
   virtual std::size_t elementSize() const = 0;
+  virtual std::size_t elementAlignment() const = 0;
 public:
   void fieldInitialize(quint8* _data) const;
   void fieldFinalize(quint8* _data) const;
   QVariant fieldReadValue(const quint8* _data) const;
   void fieldWriteValue(quint8* _data, const QVariant& _value) const;
   std::size_t fieldSize() const;
+  std::size_t alignment() const;
 private:
   QString m_name;
   Type m_type;

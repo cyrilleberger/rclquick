@@ -12,6 +12,21 @@ namespace
   };
 }
 
+MessageField::MessageField(const QString& _name, Type _type, bool _array, std::size_t _index) : m_name(_name), m_type(_type), m_is_array(_array), m_index(_index)
+{
+}
+
+std::size_t MessageField::index() const
+{
+  std::size_t a = alignment();
+  if((m_index % a) > 0)
+  {
+    return m_index + a - (m_index % a);
+  } else {
+    return m_index;
+  }
+}
+
 void MessageField::fieldInitialize(quint8* _data) const
 {
   if(m_is_array)
@@ -103,6 +118,14 @@ std::size_t MessageField::fieldSize() const
   }
 }
 
-
+std::size_t MessageField::alignment() const
+{
+  if(m_is_array)
+  {
+    return alignof(GenericRosArray);
+  } else {
+    return elementAlignment();
+  }
+}
 
 #include "moc_MessageField.cpp"

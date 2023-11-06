@@ -39,4 +39,10 @@ std::size_t MessageMessageField::elementSize() const
   return m_md->serializedLength();
 }
 
+std::size_t MessageMessageField::elementAlignment() const
+{
+  struct dummy {};
+  return alignof(dummy);
+}
+
 #include "moc_MessageMessageField.cpp"
