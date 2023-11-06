@@ -31,6 +31,18 @@ void ImageViewItem::updateImage()
   });
 }
 
+ImageViewItem::FillMode ImageViewItem::fillMode() const
+{
+  return m_fillMode;
+}
+
+void ImageViewItem::setFillMode(FillMode _fillMode)
+{
+  m_fillMode = _fillMode;
+  emit(fillModeChanged());
+  update();
+}
+
 void ImageViewItem::setImage(Image* _image)
 {
   delete m_image;
@@ -50,7 +62,18 @@ QSGNode* ImageViewItem::updatePaintNode(QSGNode* _oldNode, UpdatePaintNodeData* 
   delete m_texture;
   m_texture = window()->createTextureFromImage(m_img);
   QSGSimpleTextureNode* textureNode = new QSGSimpleTextureNode;
-  textureNode->setRect(0, 0, width(), height());
+  int i_width = m_img.width();
+  int i_height = m_img.height();
+  switch(m_fillMode)
+  {
+    case FillMode::NoFill:
+      break;
+    case FillMode::Fit:
+      i_width = width();
+      i_height = height();
+      break;
+  }
+  textureNode->setRect(0, 0, i_width, i_height);
   textureNode->setTexture(m_texture);
   delete _oldNode;
   return textureNode;
