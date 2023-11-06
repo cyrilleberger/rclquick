@@ -32,5 +32,5 @@ INSTALL(TARGETS rclqmlplugin
   LIBRARY DESTINATION ${INSTALL_QML_DIR}/Rcl
 )
 
-install(FILES qml/Time.js qmldir
-        DESTINATION ${INSTALL_QML_DIR}/Rcl/)
+install(DIRECTORY qml/Rcl
+        DESTINATION ${INSTALL_QML_DIR}/)
