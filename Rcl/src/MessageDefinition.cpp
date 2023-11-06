@@ -14,6 +14,7 @@
 #include <QHash>
 #include <QTextStream>
 
+#include "GenericRosArray.h"
 #include "MessageData.h"
 #include "MessageMessageField.h"
 #include "TypeSupport.h"
@@ -88,7 +89,7 @@ namespace {
     *_data = builtin_interfaces__msg__Time{v["sec"].value<int>(), v["nanosec"].value<uint32_t>()};
   }
 }
-#include <iostream>
+
 template<typename _T_>
 class BaseTypeMessageField : public MessageField
 {
@@ -119,6 +120,45 @@ public:
   std::size_t elementAlignment() const override
   {
     return alignof(_T_);
+  }
+};
+
+class ByteArrayMessageField : public MessageField
+{
+public:
+  ByteArrayMessageField(const QString _name, std::size_t _index) : MessageField(_name, Type::ByteArray, false, _index)
+  {
+  }
+  void elementInitialize(quint8* _data) const override
+  {
+    GenericRosArrayInterface::fieldInitialize(_data);
+  }
+  void elementFinalize(quint8* _data) const override
+  {
+    GenericRosArrayInterface::fieldFinalize(_data);
+  }
+  QVariant elementReadValue(const quint8* _data) const override
+  {
+    const GenericRosArray* array = reinterpret_cast<const GenericRosArray*>(_data);
+    return QByteArray(reinterpret_cast<const char *>(array->data), array->size);
+  }
+  void elementWriteValue(quint8* _data, const QVariant& _value) const override
+  {
+    GenericRosArrayInterface::fieldFinalize(_data);
+    GenericRosArray* array = reinterpret_cast<GenericRosArray*>(_data);
+    QByteArray value = _value.toByteArray();
+    array->size = value.size();
+    array->capacity = array->size;
+    array->data = reinterpret_cast<quint8*>(malloc(array->size * elementSize()));
+    std::copy_n(value.data(), value.size(), reinterpret_cast<char *>(array->data));
+  }
+  std::size_t elementSize() const override
+  {
+    return sizeof(GenericRosArray);
+  }
+  std::size_t elementAlignment() const override
+  {
+    return alignof(GenericRosArray);
   }
 };
 
@@ -205,7 +245,12 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
         m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64, is_array, current_index));
       } else if(baseType == "uint8")
       {
-        m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8, is_array, current_index));
+        if(is_array)
+        {
+          m_fields.append(new ByteArrayMessageField(name, current_index));
+        } else {
+          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8, is_array, current_index));
+        }
       } else if(baseType == "int8")
       {
         m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8, is_array, current_index));

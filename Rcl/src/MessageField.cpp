@@ -2,15 +2,8 @@
 
 #include <QVariant>
 
-namespace
-{
-  struct GenericRosArray
-  {
-    quint8* data;
-    size_t size;
-    size_t capacity;
-  };
-}
+
+#include "GenericRosArray.h"
 
 MessageField::MessageField(const QString& _name, Type _type, bool _array, std::size_t _index) : m_name(_name), m_type(_type), m_is_array(_array), m_index(_index)
 {
@@ -31,10 +24,7 @@ void MessageField::fieldInitialize(quint8* _data) const
 {
   if(m_is_array)
   {
-    GenericRosArray* array = reinterpret_cast<GenericRosArray*>(_data);
-    array->data = nullptr;
-    array->size = 0;
-    array->capacity = 0;
+    GenericRosArrayInterface::fieldInitialize(_data);
   } else {
     return elementInitialize(_data);
   }
@@ -50,10 +40,7 @@ void MessageField::fieldFinalize(quint8* _data) const
     {
       elementFinalize(array->data + i * elt_size);
     }
-    free(array->data);
-    array->data = nullptr;
-    array->size = 0;
-    array->capacity = 0;
+    GenericRosArrayInterface::fieldFinalize(_data);
   } else {
     return elementFinalize(_data);
   }

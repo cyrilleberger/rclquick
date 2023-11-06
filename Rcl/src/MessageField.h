@@ -20,7 +20,7 @@ class MessageField : public QObject
   Q_PROPERTY(Type type READ type CONSTANT)
 public:
   enum class Type {
-    Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Float32, Float64, String, Time, Duration, Message
+    Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Float32, Float64, String, Time, Duration, Message, ByteArray
   };
   Q_ENUM(Type)
 public:

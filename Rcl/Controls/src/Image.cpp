@@ -287,13 +287,7 @@ void Image::setMessage(const QVariant& _message)
   Data data;
   QVariantMap map_message = _message.toMap();
 
-  // data.data = map_message["data"].toByteArray();
-  QVariantList data_list = map_message["data"].toList();
-  data.data.resize(data_list.size());
-  for(int i = 0; i < data_list.size(); ++i)
-  {
-    data.data[i] = data_list[i].value<char>();
-  }
+  data.data = map_message["data"].toByteArray();
 
   data.width = map_message["width"].toUInt();
   data.height = map_message["height"].toUInt();
