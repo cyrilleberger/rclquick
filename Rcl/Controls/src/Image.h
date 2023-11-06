@@ -1,4 +1,5 @@
 #include <QObject>
+#include <QVariant>
 
 class QImage;
 
@@ -55,6 +56,7 @@ public:
   Q_PROPERTY(quint32    width       READ width      NOTIFY imageDataChanged)
   Q_PROPERTY(quint32    height      READ height     NOTIFY imageDataChanged)
   Q_PROPERTY(quint8     channels    READ channels   NOTIFY imageDataChanged)
+  Q_PROPERTY(QVariant   message     READ message    WRITE  setMessage NOTIFY messageChanged)
 public:
   Image(QObject* _parent = nullptr) : QObject(_parent) {}
   Image(const Data& _data, QObject* _parent = nullptr) : QObject(_parent), m_imageData(_data) {}
@@ -67,8 +69,12 @@ public:
   void setImageData(const Data& _imageData);
   const Data& imageData() const { return m_imageData; }
   QImage toQImage() const;
+  QVariant message() const;
+  void setMessage(const QVariant& _message);
 signals:
   void imageDataChanged();
+  void messageChanged();
 private:
   Data m_imageData;
+  QVariant m_message;
 };

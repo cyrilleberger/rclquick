@@ -22,6 +22,8 @@ signals:
   void imageChanged();
 protected:
   virtual QSGNode* updatePaintNode(QSGNode* _oldNode, UpdatePaintNodeData* _upnd);
+private slots:
+  void updateImage();
 private:
   Image* m_image;
   QImage m_img;

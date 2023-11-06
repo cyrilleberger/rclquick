@@ -21,20 +21,25 @@ Image* ImageViewItem::image() const
   return m_image;
 }
 
+void ImageViewItem::updateImage()
+{
+  m_pool.clear();
+  Image::Data data = m_image->imageData(); // Make a copy of data to use it in a different thread
+  QtConcurrent::run(&m_pool, [this, data](){
+    m_img = Image(data).toQImage();
+    QMetaObject::invokeMethod(this, "update", Qt::QueuedConnection);
+  });
+}
+
 void ImageViewItem::setImage(Image* _image)
 {
-  if(_image)
+  delete m_image;
+  m_image = _image;
+  if(m_image)
   {
-    Image::Data data = _image->imageData();
-    m_image->setImageData(data);
-    m_pool.clear();
-    QtConcurrent::run(&m_pool, [this, data](){
-      m_img = Image(data).toQImage();
-      QMetaObject::invokeMethod(this, "update", Qt::QueuedConnection);
-    });
-  } else {
-    m_image->setImageData(Image::Data());
-    m_img = QImage();
+    m_image->setParent(this);
+    updateImage();
+    connect(m_image, SIGNAL(imageDataChanged()), SLOT(updateImage()));
   }
   emit(imageChanged());
 }
