@@ -418,7 +418,9 @@ void MessageDefinition::disallocate(quint8* _data) const
 
 QList<QObject*> MessageDefinition::fieldsLO() const
 {
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
   return *reinterpret_cast<const QList<QObject*>*>(&m_fields);
+#pragma GCC diagnostic error "-Wstrict-aliasing"
 }
 
 #include "moc_MessageDefinition.cpp"
