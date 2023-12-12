@@ -3,6 +3,7 @@
 
 add_subdirectory(Controls/)
 add_subdirectory(ImageTransport/)
+add_subdirectory(TopicTools/)
 
 ########################
 ## rcl plugin
