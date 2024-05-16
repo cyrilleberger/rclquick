@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QJSValue>
+#include <QRegularExpression>
 #include <QHash>
 #include <QTextStream>
 
@@ -208,12 +209,13 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
   while(not _stream.atEnd())
   {
     QString line = _stream.readLine();
+    QStringView line_v(line);
     int comment_char = line.indexOf('#');
-    QStringRef ref = (comment_char >= 0) ? line.leftRef(comment_char) : QStringRef(&line);
+    QStringView ref = (comment_char >= 0) ? line_v.left(comment_char) : line_v;
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    QVector<QStringRef>  l = ref.split(' ', QString::SkipEmptyParts);
+    QList<QStringView> l = ref.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
 #else
-    QVector<QStringRef>  l = ref.split(' ', Qt::SkipEmptyParts);
+    QList<QStringView> l = ref.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
 #endif
     if(l.size() == 2 or l.size() == 3)
     {
@@ -304,7 +306,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       MessageField* last_field = m_fields.last();
       current_index = last_field->index() + last_field->fieldSize();
     } else if(l.size() == 4) {
-      if(l[2] == "=")
+      if(l[2].size() == 1 and l[2][0] == '=')
       {
         // Constant, ignored for now
       } else {
