@@ -23,5 +23,4 @@ struct GenericRosArrayInterface
     array->size = 0;
     array->capacity = 0;
   }
-
 };

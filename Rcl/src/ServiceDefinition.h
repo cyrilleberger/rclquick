@@ -12,7 +12,7 @@ public:
   static ServiceDefinition* get(const QString& _type_name);
   bool isValid() const { return m_is_valid; }
   MessageDefinition* requestDefinition() const { return m_requestDefinition; }
-  MessageDefinition* answerDefinition() const  { return m_answerDefinition;  }
+  MessageDefinition* answerDefinition() const { return m_answerDefinition; }
   const rosidl_service_type_support_t* typeSupport() { return m_type_support; }
 private:
   bool m_is_valid = false;

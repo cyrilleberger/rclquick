@@ -117,5 +117,13 @@
     "/home/cyrille/lrs-pkg/lrs-pkg/shells/../../inst/lib/python3.10/dist-packages",
     "/home/cyrille/lrs-pkg/lrs-pkg/shells/../../inst/lib/python3.10/dist-packages",
     ""
-  ]
+  ],
+  "files.associations": {
+    "array": "cpp",
+    "bitset": "cpp",
+    "string_view": "cpp",
+    "initializer_list": "cpp",
+    "utility": "cpp",
+    "valarray": "cpp"
+  }
 }

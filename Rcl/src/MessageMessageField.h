@@ -10,7 +10,8 @@ class MessageMessageField : public MessageField
   Q_OBJECT
   Q_PROPERTY(MessageDefinition* messageDefinition READ messageDefinition CONSTANT)
 public:
-  MessageMessageField(const QString _name, MessageDefinition* _md, bool _array, std::size_t _index) : MessageField(_name, Type::Message, _array, _index), m_md(_md)
+  MessageMessageField(const QString _name, MessageDefinition* _md, bool _array, std::size_t _index)
+      : MessageField(_name, Type::Message, _array, _index), m_md(_md)
   {
   }
   ~MessageMessageField();

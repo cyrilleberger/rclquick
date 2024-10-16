@@ -15,8 +15,8 @@ public:
   ~TimeSynchroniser();
 private:
   static void appendSubscriber(QQmlListProperty<QObject>* _property, QObject* _subscriber);
-  static int subscriberCount(QQmlListProperty<QObject>* _property);
-  static QObject* subscriber(QQmlListProperty<QObject>* _property, int _index);
+  static qsizetype subscriberCount(QQmlListProperty<QObject>* _property);
+  static QObject* subscriber(QQmlListProperty<QObject>* _property, qsizetype _index);
   static void clearSubscribers(QQmlListProperty<QObject>* _property);
   QQmlListProperty<QObject> subscribers();
 private slots:

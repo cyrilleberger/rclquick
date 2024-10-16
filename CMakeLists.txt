@@ -15,16 +15,16 @@ find_package(rcl          REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 
 #########################
-## Find Qt5
+## Find Qt6
 
-find_package(Qt5          COMPONENTS Quick Concurrent REQUIRED)
+find_package(Qt6          COMPONENTS Quick Concurrent REQUIRED)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 #########################
 ## Define qml install dir
 
-set(INSTALL_QML_DIR     lib/qt5/qml CACHE PATH "Installation directory for libraries")
+set(INSTALL_QML_DIR     lib/qt6/qml CACHE PATH "Installation directory for libraries")
 
 # Make relative paths absolute
 if(NOT IS_ABSOLUTE "${INSTALL_QML_DIR}")

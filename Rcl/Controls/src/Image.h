@@ -45,18 +45,15 @@ public:
     Image::Depth depth;
     quint8 channels;
     Image::Colorspace colorspace;
-    bool isEmpty() const
-    {
-      return width == 0 or height == 0 or data.size() == 0;
-    }
+    bool isEmpty() const { return width == 0 or height == 0 or data.size() == 0; }
   };
 public:
-  Q_PROPERTY(Colorspace colorspace  READ colorspace NOTIFY imageDataChanged)
-  Q_PROPERTY(Depth      depth       READ depth      NOTIFY imageDataChanged)
-  Q_PROPERTY(quint32    width       READ width      NOTIFY imageDataChanged)
-  Q_PROPERTY(quint32    height      READ height     NOTIFY imageDataChanged)
-  Q_PROPERTY(quint8     channels    READ channels   NOTIFY imageDataChanged)
-  Q_PROPERTY(QVariant   message     READ message    WRITE  setMessage NOTIFY messageChanged)
+  Q_PROPERTY(Colorspace colorspace READ colorspace NOTIFY imageDataChanged)
+  Q_PROPERTY(Depth depth READ depth NOTIFY imageDataChanged)
+  Q_PROPERTY(quint32 width READ width NOTIFY imageDataChanged)
+  Q_PROPERTY(quint32 height READ height NOTIFY imageDataChanged)
+  Q_PROPERTY(quint8 channels READ channels NOTIFY imageDataChanged)
+  Q_PROPERTY(QVariant message READ message WRITE setMessage NOTIFY messageChanged)
 public:
   Image(QObject* _parent = nullptr) : QObject(_parent) {}
   Image(const Data& _data, QObject* _parent = nullptr) : QObject(_parent), m_imageData(_data) {}

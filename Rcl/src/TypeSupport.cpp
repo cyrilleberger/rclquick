@@ -20,13 +20,15 @@ namespace TypeSupport
   const char* lib_ext = ".dll";
 #endif
 
-
-  const rosidl_message_type_support_t* getMessageTypeSupport(const QString& _package_name, const QString& _msg_name)
+  const rosidl_message_type_support_t* getMessageTypeSupport(const QString& _package_name,
+                                                             const QString& _msg_name)
   {
-    QFunctionPointer function = QLibrary::resolve(lib_prefix + _package_name + "__rosidl_typesupport_c" + lib_ext,
-        qPrintable("rosidl_typesupport_c__get_message_type_support_handle__" + _package_name + "__msg__" + _msg_name));
-    
-    if (function)
+    QFunctionPointer function
+      = QLibrary::resolve(lib_prefix + _package_name + "__rosidl_typesupport_c" + lib_ext,
+                          qPrintable("rosidl_typesupport_c__get_message_type_support_handle__"
+                                     + _package_name + "__msg__" + _msg_name));
+
+    if(function)
     {
       return reinterpret_cast<GetMessageTypeSupportFunction>(function)();
     }
@@ -35,15 +37,17 @@ namespace TypeSupport
       qWarning() << "Failed to get type support for message: " << _package_name << "/" << _msg_name;
       return nullptr;
     }
-
   }
 
-  const rosidl_service_type_support_t* getServiceTypeSupport(const QString& _package_name, const QString& _srvname)
+  const rosidl_service_type_support_t* getServiceTypeSupport(const QString& _package_name,
+                                                             const QString& _srvname)
   {
-    QFunctionPointer function = QLibrary::resolve(lib_prefix + _package_name + "__rosidl_typesupport_c" + lib_ext,
-        qPrintable("rosidl_typesupport_c__get_service_type_support_handle__" + _package_name + "__srv__" + _srvname));
-    
-    if (function)
+    QFunctionPointer function
+      = QLibrary::resolve(lib_prefix + _package_name + "__rosidl_typesupport_c" + lib_ext,
+                          qPrintable("rosidl_typesupport_c__get_service_type_support_handle__"
+                                     + _package_name + "__srv__" + _srvname));
+
+    if(function)
     {
       return reinterpret_cast<GetServiceTypeSupportFunction>(function)();
     }
@@ -52,7 +56,6 @@ namespace TypeSupport
       qWarning() << "Failed to get type support for service: " << _package_name << "/" << _srvname;
       return nullptr;
     }
-
   }
 
-}
+} // namespace TypeSupport

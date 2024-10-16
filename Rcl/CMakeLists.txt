@@ -26,7 +26,7 @@ set(RCL_PLUGIN_SRCS
 
 add_library(rclqmlplugin MODULE ${RCL_PLUGIN_SRCS})
 ament_target_dependencies(rclqmlplugin rcl ament_index_cpp)
-target_link_libraries(rclqmlplugin Qt5::Quick Qt5::Concurrent)
+target_link_libraries(rclqmlplugin Qt6::Quick Qt6::Concurrent)
 
 INSTALL(TARGETS rclqmlplugin
   RUNTIME DESTINATION ${INSTALL_QML_DIR}/Rcl

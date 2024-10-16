@@ -11,25 +11,17 @@ MessageData::MessageData(const MessageDefinition* _definition) : d(new Data)
 MessageData::MessageData(const MessageDefinition* _definition, quint8* _data) : d(new Data)
 {
   d->definition = _definition;
-  d->data       = _data;
+  d->data = _data;
 }
 
+MessageData::MessageData(const MessageData& _rhs) : d(_rhs.d) {}
 
-MessageData::MessageData(const MessageData& _rhs) : d(_rhs.d)
-{
-}
-
-MessageData & MessageData::operator=(const MessageData& _rhs)
+MessageData& MessageData::operator=(const MessageData& _rhs)
 {
   d = _rhs.d;
   return *this;
 }
 
-MessageData::~MessageData()
-{
-}
+MessageData::~MessageData() {}
 
-MessageData::Data::~Data()
-{
-  definition->disallocate(data);
-}
+MessageData::Data::~Data() { definition->disallocate(data); }

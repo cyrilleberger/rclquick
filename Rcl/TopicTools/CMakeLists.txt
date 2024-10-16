@@ -8,7 +8,7 @@ set(RCL_TOPICTOOLS_PLUGIN_SRCS
 
 add_library(rcltopictoolsqmlplugin MODULE ${RCL_TOPICTOOLS_PLUGIN_SRCS})
 # ament_target_dependencies(rcltopictoolsqmlplugin rcl ament_index_cpp)
-target_link_libraries(rcltopictoolsqmlplugin Qt5::Quick Qt5::Concurrent)
+target_link_libraries(rcltopictoolsqmlplugin Qt6::Quick Qt6::Concurrent)
 
 INSTALL(TARGETS rcltopictoolsqmlplugin
   RUNTIME DESTINATION ${INSTALL_QML_DIR}/Rcl/TopicTools

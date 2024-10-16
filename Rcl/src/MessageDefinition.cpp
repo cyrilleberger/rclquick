@@ -2,17 +2,17 @@
 
 #include <cstring>
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <ament_index_cpp/get_package_prefix.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <builtin_interfaces/msg/time.h>
 #include <rosidl_runtime_c/string.h>
 
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
+#include <QHash>
 #include <QJSValue>
 #include <QRegularExpression>
-#include <QHash>
 #include <QTextStream>
 
 #include "GenericRosArray.h"
@@ -20,7 +20,8 @@
 #include "MessageMessageField.h"
 #include "TypeSupport.h"
 
-namespace {
+namespace
+{
   template<typename _T_>
   inline void do_initialize(_T_* _v)
   {
@@ -29,9 +30,9 @@ namespace {
   template<>
   inline void do_initialize<rosidl_runtime_c__String>(rosidl_runtime_c__String* _v)
   {
-    _v->data      = nullptr;
-    _v->size      = 0;
-    _v->capacity  = 0;
+    _v->data = nullptr;
+    _v->size = 0;
+    _v->capacity = 0;
   }
   template<typename _T_>
   inline void do_finalize(_T_* _v)
@@ -42,11 +43,11 @@ namespace {
   inline void do_finalize<rosidl_runtime_c__String>(rosidl_runtime_c__String* _v)
   {
     free(_v->data);
-    _v->data      = nullptr;
-    _v->size      = 0;
-    _v->capacity  = 0;
+    _v->data = nullptr;
+    _v->size = 0;
+    _v->capacity = 0;
   }
-  
+
   template<typename _T_>
   inline QVariant element_read_value(const _T_* _v)
   {
@@ -58,7 +59,8 @@ namespace {
     return QVariant::fromValue(QString::fromUtf8(_v->data, _v->size));
   }
   template<>
-  inline QVariant element_read_value<builtin_interfaces__msg__Time>(const builtin_interfaces__msg__Time* _v)
+  inline QVariant
+    element_read_value<builtin_interfaces__msg__Time>(const builtin_interfaces__msg__Time* _v)
   {
     QVariantMap map;
     map["sec"] = _v->sec;
@@ -71,7 +73,8 @@ namespace {
     *_data = _v.value<_T_>();
   }
   template<>
-  inline void element_write_value<rosidl_runtime_c__String>(rosidl_runtime_c__String* _data, const QVariant& _v)
+  inline void element_write_value<rosidl_runtime_c__String>(rosidl_runtime_c__String* _data,
+                                                            const QVariant& _v)
   {
     do_finalize(_data);
     QByteArray utf8str = _v.value<QString>().toUtf8();
@@ -84,18 +87,21 @@ namespace {
     _data->data[str_size] = 0;
   }
   template<>
-  inline void element_write_value<builtin_interfaces__msg__Time>(builtin_interfaces__msg__Time* _data, const QVariant& _v)
+  inline void
+    element_write_value<builtin_interfaces__msg__Time>(builtin_interfaces__msg__Time* _data,
+                                                       const QVariant& _v)
   {
     QVariantMap v = _v.toMap();
     *_data = builtin_interfaces__msg__Time{v["sec"].value<int>(), v["nanosec"].value<uint32_t>()};
   }
-}
+} // namespace
 
 template<typename _T_>
 class BaseTypeMessageField : public MessageField
 {
 public:
-  BaseTypeMessageField(const QString _name, Type _type, bool _array, std::size_t _index) : MessageField(_name, _type, _array, _index)
+  BaseTypeMessageField(const QString _name, Type _type, bool _array, std::size_t _index)
+      : MessageField(_name, _type, _array, _index)
   {
   }
   void elementInitialize(quint8* _data) const override
@@ -114,20 +120,15 @@ public:
   {
     element_write_value<_T_>(reinterpret_cast<_T_*>(_data), _value);
   }
-  std::size_t elementSize() const override
-  {
-    return sizeof(_T_);
-  }
-  std::size_t elementAlignment() const override
-  {
-    return alignof(_T_);
-  }
+  std::size_t elementSize() const override { return sizeof(_T_); }
+  std::size_t elementAlignment() const override { return alignof(_T_); }
 };
 
 class ByteArrayMessageField : public MessageField
 {
 public:
-  ByteArrayMessageField(const QString _name, std::size_t _index) : MessageField(_name, Type::ByteArray, false, _index)
+  ByteArrayMessageField(const QString _name, std::size_t _index)
+      : MessageField(_name, Type::ByteArray, false, _index)
   {
   }
   void elementInitialize(quint8* _data) const override
@@ -141,7 +142,7 @@ public:
   QVariant elementReadValue(const quint8* _data) const override
   {
     const GenericRosArray* array = reinterpret_cast<const GenericRosArray*>(_data);
-    return QByteArray(reinterpret_cast<const char *>(array->data), array->size);
+    return QByteArray(reinterpret_cast<const char*>(array->data), array->size);
   }
   void elementWriteValue(quint8* _data, const QVariant& _value) const override
   {
@@ -151,21 +152,13 @@ public:
     array->size = value.size();
     array->capacity = array->size;
     array->data = reinterpret_cast<quint8*>(malloc(array->size * elementSize()));
-    std::copy_n(value.data(), value.size(), reinterpret_cast<char *>(array->data));
+    std::copy_n(value.data(), value.size(), reinterpret_cast<char*>(array->data));
   }
-  std::size_t elementSize() const override
-  {
-    return sizeof(GenericRosArray);
-  }
-  std::size_t elementAlignment() const override
-  {
-    return alignof(GenericRosArray);
-  }
+  std::size_t elementSize() const override { return sizeof(GenericRosArray); }
+  std::size_t elementAlignment() const override { return alignof(GenericRosArray); }
 };
 
-MessageDefinition::MessageDefinition(QObject* _parent) : QObject(_parent)
-{
-}
+MessageDefinition::MessageDefinition(QObject* _parent) : QObject(_parent) {}
 
 MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_type_name)
 {
@@ -186,17 +179,22 @@ MessageDefinition::MessageDefinition(const QString& _type_name) : m_type_name(_t
   const QString messagename = splited[1];
   try
   {
-    QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/msg/" + messagename + ".msg");
+    QFile file(QString::fromStdString(
+                 ament_index_cpp::get_package_share_directory(packagename.toStdString()))
+               + "/msg/" + messagename + ".msg");
     if(file.open(QIODevice::ReadOnly))
     {
       QTextStream stream(&file);
       parseDefinition(packagename, stream);
       m_typesupport = TypeSupport::getMessageTypeSupport(packagename, messagename);
       m_valid = m_valid and m_typesupport;
-    } else {
+    }
+    else
+    {
       qWarning() << "Failed to open: " << file.fileName();
     }
-  } catch(const ament_index_cpp::PackageNotFoundError& e)
+  }
+  catch(const ament_index_cpp::PackageNotFoundError& e)
   {
     qWarning() << "Cannot find package: " << packagename << " with error: " << e.what();
   }
@@ -212,11 +210,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
     QStringView line_v(line);
     int comment_char = line.indexOf('#');
     QStringView ref = (comment_char >= 0) ? line_v.left(comment_char) : line_v;
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-    QList<QStringView> l = ref.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
-#else
     QList<QStringView> l = ref.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-#endif
     if(l.size() == 2 or l.size() == 3)
     {
       QString type = l[0].toString();
@@ -227,66 +221,98 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       {
         is_array = true;
         baseType = type.left(type.length() - 2);
-      } else if(type.endsWith(']'))
+      }
+      else if(type.endsWith(']'))
       {
-        QRegExp r("(.*)\\[(.*)\\]");
-        r.exactMatch(type);
-        baseType = r.cap(1);
+        QRegularExpression r("(.*)\\[(.*)\\]");
+        QRegularExpressionMatch m = r.match(type);
+        baseType = m.captured(1);
         is_array = true;
-      } else {
+      }
+      else
+      {
         baseType = type;
       }
       if(baseType == "string")
       {
-        m_fields.append(new BaseTypeMessageField<rosidl_runtime_c__String>(name, MessageField::Type::String, is_array, current_index));
-      } else if(baseType == "float32")
+        m_fields.append(new BaseTypeMessageField<rosidl_runtime_c__String>(
+          name, MessageField::Type::String, is_array, current_index));
+      }
+      else if(baseType == "float32")
       {
-        m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32, is_array, current_index));
-      } else if(baseType == "float64")
+        m_fields.append(new BaseTypeMessageField<float>(name, MessageField::Type::Float32, is_array,
+                                                        current_index));
+      }
+      else if(baseType == "float64")
       {
-        m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64, is_array, current_index));
-      } else if(baseType == "uint8")
+        m_fields.append(new BaseTypeMessageField<double>(name, MessageField::Type::Float64,
+                                                         is_array, current_index));
+      }
+      else if(baseType == "uint8")
       {
         if(is_array)
         {
           m_fields.append(new ByteArrayMessageField(name, current_index));
-        } else {
-          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8, is_array, current_index));
         }
-      } else if(baseType == "int8")
+        else
+        {
+          m_fields.append(new BaseTypeMessageField<quint8>(name, MessageField::Type::UInt8,
+                                                           is_array, current_index));
+        }
+      }
+      else if(baseType == "int8")
       {
-        m_fields.append(new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8, is_array, current_index));
-      } else if(baseType == "uint16")
+        m_fields.append(
+          new BaseTypeMessageField<qint8>(name, MessageField::Type::Int8, is_array, current_index));
+      }
+      else if(baseType == "uint16")
       {
-        m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16, is_array, current_index));
-      } else if(baseType == "int16")
+        m_fields.append(new BaseTypeMessageField<quint16>(name, MessageField::Type::UInt16,
+                                                          is_array, current_index));
+      }
+      else if(baseType == "int16")
       {
-        m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16, is_array, current_index));
-      } else if(baseType == "uint32")
+        m_fields.append(new BaseTypeMessageField<qint16>(name, MessageField::Type::Int16, is_array,
+                                                         current_index));
+      }
+      else if(baseType == "uint32")
       {
-        m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32, is_array, current_index));
-      } else if(baseType == "int32")
+        m_fields.append(new BaseTypeMessageField<quint32>(name, MessageField::Type::UInt32,
+                                                          is_array, current_index));
+      }
+      else if(baseType == "int32")
       {
-        m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32, is_array, current_index));
-      } else if(baseType == "uint64")
+        m_fields.append(new BaseTypeMessageField<qint32>(name, MessageField::Type::Int32, is_array,
+                                                         current_index));
+      }
+      else if(baseType == "uint64")
       {
-        m_fields.append(new BaseTypeMessageField<uint64_t>(name, MessageField::Type::UInt64, is_array, current_index));
-      } else if(baseType == "int64")
+        m_fields.append(new BaseTypeMessageField<uint64_t>(name, MessageField::Type::UInt64,
+                                                           is_array, current_index));
+      }
+      else if(baseType == "int64")
       {
-        m_fields.append(new BaseTypeMessageField<int64_t>(name, MessageField::Type::Int64, is_array, current_index));
-      } else if(baseType == "bool")
+        m_fields.append(new BaseTypeMessageField<int64_t>(name, MessageField::Type::Int64, is_array,
+                                                          current_index));
+      }
+      else if(baseType == "bool")
       {
-        m_fields.append(new BaseTypeMessageField<bool>(name, MessageField::Type::Bool, is_array, current_index));
-      } else if(baseType == "time")
+        m_fields.append(
+          new BaseTypeMessageField<bool>(name, MessageField::Type::Bool, is_array, current_index));
+      }
+      else if(baseType == "time")
       {
-        m_fields.append(new BaseTypeMessageField<builtin_interfaces__msg__Time>(name, MessageField::Type::Time, is_array, current_index));
-      } else {
+        m_fields.append(new BaseTypeMessageField<builtin_interfaces__msg__Time>(
+          name, MessageField::Type::Time, is_array, current_index));
+      }
+      else
+      {
         if(baseType == "Header")
         {
           baseType = "std_msgs/Header";
           type = "std_msgs/" + type;
         }
-        qDebug() << baseType; 
+        qDebug() << baseType;
         if(not baseType.contains("/"))
         {
           type = _packagename + "/" + type;
@@ -297,7 +323,9 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
         if(md->isValid())
         {
           m_fields.append(new MessageMessageField(name, md, is_array, current_index));
-        } else {
+        }
+        else
+        {
           qWarning() << "Unsupported field type: " << type << name;
           m_valid = false;
           return;
@@ -305,16 +333,22 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
       }
       MessageField* last_field = m_fields.last();
       current_index = last_field->index() + last_field->fieldSize();
-    } else if(l.size() == 4) {
+    }
+    else if(l.size() == 4)
+    {
       if(l[2].size() == 1 and l[2][0] == '=')
       {
         // Constant, ignored for now
-      } else {
+      }
+      else
+      {
         qWarning() << "Invalid line: " << line;
         m_valid = false;
-          return;
+        return;
       }
-    } else if(l.size() != 0) {
+    }
+    else if(l.size() != 0)
+    {
       qWarning() << "Invalid line: " << line;
       m_valid = false;
       return;
@@ -322,9 +356,7 @@ void MessageDefinition::parseDefinition(const QString& _packagename, QTextStream
   }
 }
 
-MessageDefinition::~MessageDefinition()
-{
-}
+MessageDefinition::~MessageDefinition() {}
 
 MessageDefinition* MessageDefinition::get(const QString& _type_name)
 {
@@ -337,7 +369,8 @@ MessageDefinition* MessageDefinition::get(const QString& _type_name)
     if(_type_name == "Header")
     {
       definitions["std_msgs/Header"] = md;
-    } else if(_type_name == "std_msgs/Header")
+    }
+    else if(_type_name == "std_msgs/Header")
     {
       definitions["Header"] = md;
     }
@@ -359,17 +392,23 @@ QVariantMap MessageDefinition::variantToMap(const QVariant& _variant) const
         list.append(value.property(i).toVariant());
       }
       return variantToMap(list);
-    } else if(value.isObject()) {
+    }
+    else if(value.isObject())
+    {
       return value.toVariant().toMap();
-    } else {
+    }
+    else
+    {
       QVariantList list;
       list.append(value.toVariant());
       return variantToMap(list);
     }
-  } else if(_variant.canConvert<QVariantMap>())
+  }
+  else if(_variant.canConvert<QVariantMap>())
   {
-    return  _variant.toMap();
-  } else if(_variant.canConvert<QVariantList>())
+    return _variant.toMap();
+  }
+  else if(_variant.canConvert<QVariantList>())
   {
     QVariantList list = _variant.toList();
     QVariantMap r;
@@ -382,23 +421,31 @@ QVariantMap MessageDefinition::variantToMap(const QVariant& _variant) const
       {
         const MessageMessageField* mmf = qobject_cast<const MessageMessageField*>(mf);
         r[mf->name()] = mmf->messageDefinition()->variantToMap(value);
-      } else {
+      }
+      else
+      {
         r[mf->name()] = value;
       }
     }
     return r;
-  } else if(m_fields.size() == 1) {
+  }
+  else if(m_fields.size() == 1)
+  {
     QVariantMap r;
     const MessageField* mf = m_fields.first();
     if(mf->type() == MessageField::Type::Message)
     {
       const MessageMessageField* mmf = qobject_cast<const MessageMessageField*>(mf);
       r[mf->name()] = mmf->messageDefinition()->variantToMap(_variant);
-    } else {
+    }
+    else
+    {
       r[mf->name()] = _variant;
     }
     return r;
-  } else {
+  }
+  else
+  {
     qWarning() << "Invalid message: " << _variant;
     return QVariantMap();
   }
@@ -436,7 +483,8 @@ void MessageDefinition::serializeMessage(const QVariantMap& _hash, quint8* _buff
 
 std::size_t MessageDefinition::serializedLength() const
 {
-  if(m_fields.isEmpty()) return 0;
+  if(m_fields.isEmpty())
+    return 0;
 
   const MessageField* last_mf = m_fields.last();
   return last_mf->index() + last_mf->fieldSize();
@@ -461,7 +509,6 @@ void MessageDefinition::disallocate(quint8* _data) const
   }
   free(_data);
 }
-
 
 QList<QObject*> MessageDefinition::fieldsLO() const
 {

@@ -29,12 +29,9 @@ namespace
     {
       return scale(*reinterpret_cast<const _T_*>(data));
     }
-    constexpr static std::size_t size()
-    {
-      return sizeof(_T_);
-    }
+    constexpr static std::size_t size() { return sizeof(_T_); }
   };
-  
+
   template<int _red_channel_, int _green_channel_, int _blue_channel_, typename _channel_t_>
   struct ToRgb32PixelGenericConverter
   {
@@ -42,9 +39,9 @@ namespace
     ToRgb32PixelGenericConverter()
     {
       const quint32 size = ChannelConverter::size();
-      red_offset    = _red_channel_ * size;
-      green_offset  = _green_channel_ * size;
-      blue_offset   = _blue_channel_ * size;
+      red_offset = _red_channel_ * size;
+      green_offset = _green_channel_ * size;
+      blue_offset = _blue_channel_ * size;
     }
     constexpr void convert(const char* _indata, quint8* _outdata)
     {
@@ -53,26 +50,17 @@ namespace
       _outdata[2] = ChannelConverter::convert(_indata + blue_offset);
       _outdata[3] = 0xff; // alpha
     }
-    constexpr QImage::Format format()
-    {
-      return QImage::Format_RGB32;
-    }
-    constexpr std::size_t imgPixelSize()
-    {
-      return 4;
-    }
-    constexpr std::size_t dataPixelSize()
-    {
-      return 3 * ChannelConverter::size();
-    }
+    constexpr QImage::Format format() { return QImage::Format_RGB32; }
+    constexpr std::size_t imgPixelSize() { return 4; }
+    constexpr std::size_t dataPixelSize() { return 3 * ChannelConverter::size(); }
     quint32 red_offset, green_offset, blue_offset;
   };
-  
+
   template<typename _channel_t_>
   using RgbToRgb32PixelConverter = ToRgb32PixelGenericConverter<2, 1, 0, _channel_t_>;
   template<typename _channel_t_>
   using BgrToRgb32PixelConverter = ToRgb32PixelGenericConverter<0, 1, 2, _channel_t_>;
-  
+
   template<template<typename> class _PixelConverter_>
   struct Converter
   {
@@ -80,36 +68,36 @@ namespace
     {
       switch(_source.depth)
       {
-        case Image::Depth::UInt8:
-          return do_convert<quint8>(_source);
-          break;
-        case Image::Depth::Int8:
-          return do_convert<qint8>(_source);
-          break;
-        case Image::Depth::UInt16:
-          return do_convert<quint16>(_source);
-          break;
-        case Image::Depth::Int16:
-          return do_convert<qint16>(_source);
-          break;
-        case Image::Depth::UInt32:
-          return do_convert<quint32>(_source);
-          break;
-        case Image::Depth::Int32:
-          return do_convert<qint32>(_source);
-          break;
-        case Image::Depth::UInt64:
-          return do_convert<quint64>(_source);
-          break;
-        case Image::Depth::Int64:
-          return do_convert<qint64>(_source);
-          break;
-        case Image::Depth::Float32:
-          return do_convert<float>(_source);
-          break;
-        case Image::Depth::Float64:
-          return do_convert<double>(_source);
-          break;
+      case Image::Depth::UInt8:
+        return do_convert<quint8>(_source);
+        break;
+      case Image::Depth::Int8:
+        return do_convert<qint8>(_source);
+        break;
+      case Image::Depth::UInt16:
+        return do_convert<quint16>(_source);
+        break;
+      case Image::Depth::Int16:
+        return do_convert<qint16>(_source);
+        break;
+      case Image::Depth::UInt32:
+        return do_convert<quint32>(_source);
+        break;
+      case Image::Depth::Int32:
+        return do_convert<qint32>(_source);
+        break;
+      case Image::Depth::UInt64:
+        return do_convert<quint64>(_source);
+        break;
+      case Image::Depth::Int64:
+        return do_convert<qint64>(_source);
+        break;
+      case Image::Depth::Float32:
+        return do_convert<float>(_source);
+        break;
+      case Image::Depth::Float64:
+        return do_convert<double>(_source);
+        break;
       }
       qFatal("Unsupported depth");
     }
@@ -119,45 +107,42 @@ namespace
     {
       _PixelConverter_<_T_> pc;
       QImage img(_source.width, _source.height, pc.format());
-      
+
       int pos_img = 0;
       int pos_data = 0;
-      
+
       std::size_t data_stride = pc.dataPixelSize();
       std::size_t img_stride = pc.imgPixelSize();
-      
+
       for(std::size_t i = 0; i < _source.width * _source.height; ++i)
       {
         pc.convert(_source.data.data() + pos_data, img.bits() + pos_img);
         pos_data += data_stride;
-        pos_img  += img_stride;
-        
+        pos_img += img_stride;
       }
       return img;
     }
   };
-}
+} // namespace
 
 QImage Image::toQImage() const
 {
-  if(m_imageData.isEmpty()) return QImage();
-  
+  if(m_imageData.isEmpty())
+    return QImage();
+
   switch(m_imageData.colorspace)
   {
-    case Image::Colorspace::RGB:
-      return Converter<RgbToRgb32PixelConverter>::convert(m_imageData);
-    case Image::Colorspace::BGR:
-      return Converter<BgrToRgb32PixelConverter>::convert(m_imageData);
-    default:
-      qWarning() << "Unsupported colorspace: " << int(m_imageData.colorspace);
-      return QImage();
+  case Image::Colorspace::RGB:
+    return Converter<RgbToRgb32PixelConverter>::convert(m_imageData);
+  case Image::Colorspace::BGR:
+    return Converter<BgrToRgb32PixelConverter>::convert(m_imageData);
+  default:
+    qWarning() << "Unsupported colorspace: " << int(m_imageData.colorspace);
+    return QImage();
   }
 }
 
-QVariant Image::message() const
-{
-  return m_message;
-}
+QVariant Image::message() const { return m_message; }
 
 namespace image_encodings
 {
@@ -211,7 +196,7 @@ namespace image_encodings
   const char BAYER_BGGR16[] = "bayer_bggr16";
   const char BAYER_GBRG16[] = "bayer_gbrg16";
   const char BAYER_GRBG16[] = "bayer_grbg16";
-}
+} // namespace image_encodings
 
 void Image::setMessage(const QVariant& _message)
 {
@@ -226,8 +211,10 @@ void Image::setMessage(const QVariant& _message)
 
   if(ros_to_channels_description.isEmpty())
   {
-#define RRCD(__name__, __depth__, __channels__, __colorspace__) \
-      ros_to_channels_description[QString::fromStdString(image_encodings::__name__)] = ChannelsDescription{Image::Depth::__depth__, __channels__, Image::Colorspace::__colorspace__};
+#define RRCD(__name__, __depth__, __channels__, __colorspace__)                                    \
+  ros_to_channels_description[QString::fromStdString(image_encodings::__name__)]                   \
+    = ChannelsDescription{Image::Depth::__depth__, __channels__,                                   \
+                          Image::Colorspace::__colorspace__};
     RRCD(RGB8, UInt8, 3, RGB);
     RRCD(RGBA8, UInt8, 4, RGBA);
     RRCD(RGB16, UInt16, 3, RGB);
@@ -305,9 +292,3 @@ void Image::setMessage(const QVariant& _message)
   data.colorspace = cd.colorspace;
   setImageData(data);
 }
-
-
-
-
-
-

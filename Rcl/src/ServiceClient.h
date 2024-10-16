@@ -1,3 +1,5 @@
+#pragma once
+
 #include "RosObject.h"
 
 #include <QMutex>
@@ -11,11 +13,13 @@ class ServiceClient : public RosObject
 {
   friend class RosThread;
   Q_OBJECT
-  Q_PROPERTY(bool shouldWaitForAvailable READ shouldWaitForAvailable WRITE setShouldWaitForAvailable NOTIFY shouldWaitForAvailableChanged)
+  Q_PROPERTY(bool shouldWaitForAvailable READ shouldWaitForAvailable WRITE setShouldWaitForAvailable
+               NOTIFY shouldWaitForAvailableChanged)
   Q_PROPERTY(bool callInProgress READ callInProgress NOTIFY callInProgressChanged)
   Q_PROPERTY(QString dataType READ dataType WRITE setDataType NOTIFY dataTypeChanged)
   Q_PROPERTY(QString serviceName READ serviceName WRITE setServiceName NOTIFY serviceNameChanged)
-  Q_PROPERTY(ServiceDefinition* serviceDefinition READ serviceDefinition NOTIFY serviceDefinitionChanged)
+  Q_PROPERTY(
+    ServiceDefinition* serviceDefinition READ serviceDefinition NOTIFY serviceDefinitionChanged)
 public:
   ServiceClient(QObject* _parent = nullptr);
   ~ServiceClient();
@@ -25,7 +29,7 @@ public:
   void setDataType(const QString& _serviceName);
   bool callInProgress() const { return m_called; }
   bool shouldWaitForAvailable() const { return m_shouldWaitForAvailable; }
-  void setShouldWaitForAvailable(bool _v); 
+  void setShouldWaitForAvailable(bool _v);
   Q_INVOKABLE bool call(const QVariant& _message);
   ServiceDefinition* serviceDefinition() const { return m_service_definition; }
 private:

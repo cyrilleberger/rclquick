@@ -2,10 +2,10 @@
 
 #include <QVariant>
 
-
 #include "GenericRosArray.h"
 
-MessageField::MessageField(const QString& _name, Type _type, bool _array, std::size_t _index) : m_name(_name), m_type(_type), m_is_array(_array), m_index(_index)
+MessageField::MessageField(const QString& _name, Type _type, bool _array, std::size_t _index)
+    : m_name(_name), m_type(_type), m_is_array(_array), m_index(_index)
 {
 }
 
@@ -15,7 +15,9 @@ std::size_t MessageField::index() const
   if((m_index % a) > 0)
   {
     return m_index + a - (m_index % a);
-  } else {
+  }
+  else
+  {
     return m_index;
   }
 }
@@ -25,7 +27,9 @@ void MessageField::fieldInitialize(quint8* _data) const
   if(m_is_array)
   {
     GenericRosArrayInterface::fieldInitialize(_data);
-  } else {
+  }
+  else
+  {
     return elementInitialize(_data);
   }
 }
@@ -41,7 +45,9 @@ void MessageField::fieldFinalize(quint8* _data) const
       elementFinalize(array->data + i * elt_size);
     }
     GenericRosArrayInterface::fieldFinalize(_data);
-  } else {
+  }
+  else
+  {
     return elementFinalize(_data);
   }
 }
@@ -58,7 +64,9 @@ QVariant MessageField::fieldReadValue(const quint8* _data) const
       list.append(elementReadValue(array->data + i * elt_size));
     }
     return list;
-  } else {
+  }
+  else
+  {
     return elementReadValue(_data);
   }
 }
@@ -69,28 +77,31 @@ void MessageField::fieldWriteValue(quint8* _data, const QVariant& _value) const
   {
     fieldFinalize(_data);
     GenericRosArray* array = reinterpret_cast<GenericRosArray*>(_data);
-    
+
     QVariantList list;
     if(_value.canConvert<QVariantList>())
     {
       list = _value.toList();
-    } else {
+    }
+    else
+    {
       list.append(_value);
     }
-    
+
     array->size = list.size();
     array->capacity = array->size;
     array->data = reinterpret_cast<quint8*>(malloc(array->size * elementSize()));
     const std::size_t elt_size = elementSize();
-    
+
     for(std::size_t i = 0; i < array->size; ++i)
     {
       quint8* element = array->data + elt_size * i;
       elementInitialize(element);
       elementWriteValue(element, list[i]);
     }
-    
-  } else {
+  }
+  else
+  {
     elementWriteValue(_data, _value);
   }
 }
@@ -100,7 +111,9 @@ std::size_t MessageField::fieldSize() const
   if(m_is_array)
   {
     return sizeof(GenericRosArray);
-  } else {
+  }
+  else
+  {
     return elementSize();
   }
 }
@@ -110,7 +123,9 @@ std::size_t MessageField::alignment() const
   if(m_is_array)
   {
     return alignof(GenericRosArray);
-  } else {
+  }
+  else
+  {
     return elementAlignment();
   }
 }

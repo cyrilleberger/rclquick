@@ -20,5 +20,5 @@ private:
     quint8* data;
     const MessageDefinition* definition;
   };
-  QExplicitlySharedDataPointer<Data> d;  
+  QExplicitlySharedDataPointer<Data> d;
 };

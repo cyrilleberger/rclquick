@@ -4,11 +4,9 @@
 
 #include "TimeSynchroniser.h"
 
-RclTopicToolsQmlPlugin::RclTopicToolsQmlPlugin()
-{
-}
+RclTopicToolsQmlPlugin::RclTopicToolsQmlPlugin() {}
 
-void RclTopicToolsQmlPlugin::registerTypes(const char *uri)
+void RclTopicToolsQmlPlugin::registerTypes(const char* uri)
 {
   qmlRegisterType<TimeSynchroniser>(uri, 1, 0, "TimeSynchroniser");
 }

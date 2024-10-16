@@ -9,8 +9,8 @@ class RosQmlPlugin : public QQmlExtensionPlugin
   Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
 public:
   RosQmlPlugin();
-  void registerTypes(const char *uri);
-  void initializeEngine(QQmlEngine *engine, const char *uri);
+  void registerTypes(const char* uri);
+  void initializeEngine(QQmlEngine* engine, const char* uri);
 };
 
 #endif // ROSQMLPLUGIN_H

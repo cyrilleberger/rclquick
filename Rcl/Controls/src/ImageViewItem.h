@@ -1,8 +1,8 @@
 #ifndef _IMAGEVIEWITEM_H_
 #define _IMAGEVIEWITEM_H_
 
-#include <QQuickItem>
 #include <QImage>
+#include <QQuickItem>
 #include <QThreadPool>
 
 class Image;

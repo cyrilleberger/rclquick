@@ -3,8 +3,8 @@
 
 #include <functional>
 
-#include <QMutex>
 #include <QMultiHash>
+#include <QMutex>
 #include <QThread>
 #include <QThreadPool>
 
@@ -44,7 +44,7 @@ private:
   QThreadPool m_threadPool;
   QMutex m_mutex;
   QMultiHash<RosObject*, std::function<void()>> m_actions;
-  QList<Subscriber*>    m_subscribers;
+  QList<Subscriber*> m_subscribers;
   QList<ServiceClient*> m_clients;
   rcl_guard_condition_t m_wake_up_loop;
   bool m_running;

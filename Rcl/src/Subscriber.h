@@ -1,3 +1,5 @@
+#pragma once
+
 #include "RosObject.h"
 
 #include <QMutex>
@@ -16,7 +18,8 @@ class Subscriber : public RosObject
   Q_PROPERTY(QString topicName READ topicName WRITE setTopicName NOTIFY topicNameChanged)
   Q_PROPERTY(int skip READ skip WRITE setSkip NOTIFY skipChanged)
   Q_PROPERTY(QVariant lastMessage READ lastMessage NOTIFY messageReceived)
-  Q_PROPERTY(MessageDefinition* messageDefinition READ messageDefinition NOTIFY messageDefinitionChanged)
+  Q_PROPERTY(
+    MessageDefinition* messageDefinition READ messageDefinition NOTIFY messageDefinitionChanged)
 public:
   Subscriber(QObject* _parent = nullptr);
   ~Subscriber();
@@ -24,7 +27,12 @@ public:
   QString topicName() const { return m_topic_name; }
   void setTopicName(const QString& _topicName);
   int skip() const { return m_skip; }
-  void setSkip(int skip) { m_skip = skip; m_skipCount = m_skip; emit(skipChanged()); }
+  void setSkip(int skip)
+  {
+    m_skip = skip;
+    m_skipCount = m_skip;
+    emit(skipChanged());
+  }
   QString dataType() const { return m_data_type; }
   void setDataType(const QString& _topicName);
   MessageDefinition* messageDefinition() const { return m_message_definition; }

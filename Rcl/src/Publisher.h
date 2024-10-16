@@ -1,3 +1,5 @@
+#pragma once
+
 #include "RosObject.h"
 
 #include <rcl/publisher.h>
@@ -9,7 +11,8 @@ class Publisher : public RosObject
   Q_OBJECT
   Q_PROPERTY(QString dataType READ dataType WRITE setDataType NOTIFY dataTypeChanged)
   Q_PROPERTY(QString topicName READ topicName WRITE setTopicName NOTIFY topicNameChanged)
-  Q_PROPERTY(MessageDefinition* messageDefinition READ messageDefinition NOTIFY messageDefinitionChanged)
+  Q_PROPERTY(
+    MessageDefinition* messageDefinition READ messageDefinition NOTIFY messageDefinitionChanged)
 public:
   Publisher(QObject* _parent = nullptr);
   ~Publisher();

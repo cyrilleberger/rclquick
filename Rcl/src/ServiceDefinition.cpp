@@ -1,18 +1,19 @@
 #include "ServiceDefinition.h"
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <ament_index_cpp/get_package_prefix.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QFile>
 #include <QHash>
 
-
 #include "MessageDefinition.h"
 #include "TypeSupport.h"
 
-ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_type_name), m_requestDefinition(new MessageDefinition(this)), m_answerDefinition(new MessageDefinition(this))
+ServiceDefinition::ServiceDefinition(const QString& _type_name)
+    : m_type_name(_type_name), m_requestDefinition(new MessageDefinition(this)),
+      m_answerDefinition(new MessageDefinition(this))
 {
   qDebug() << "ServiceDefinition for " << m_type_name;
   QStringList splited = m_type_name.split('/');
@@ -25,31 +26,34 @@ ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_t
   const QString servicename = splited[1];
   try
   {
-    
-    QFile file(QString::fromStdString(ament_index_cpp::get_package_share_directory(packagename.toStdString())) + "/srv/" + servicename + ".srv");
+
+    QFile file(QString::fromStdString(
+                 ament_index_cpp::get_package_share_directory(packagename.toStdString()))
+               + "/srv/" + servicename + ".srv");
 
     if(file.open(QIODevice::ReadOnly))
     {
       QTextStream stream(&file);
       QString data = file.readAll();
-      
+
       QStringList splited = data.split("---\n");
       if(splited.size() != 2)
       {
         qWarning() << "Invalid service definition: " << _type_name;
         return;
       }
-        
+
       QTextStream request_definition(&splited[0]);
       m_requestDefinition->parseDefinition(packagename, request_definition);
       QTextStream answer_definition(&splited[1]);
       m_answerDefinition->parseDefinition(packagename, answer_definition);
-      
+
       m_is_valid = m_requestDefinition->isValid() and m_answerDefinition->isValid();
       m_type_support = TypeSupport::getServiceTypeSupport(packagename, servicename);
       m_is_valid = m_is_valid and m_type_support;
-      
-    } else {
+    }
+    else
+    {
       qWarning() << "Failed to open: " << file.fileName();
     }
     /* code */
@@ -58,12 +62,9 @@ ServiceDefinition::ServiceDefinition(const QString& _type_name) : m_type_name(_t
   {
     qWarning() << "Cannot find package: " << packagename << " with error: " << e.what();
   }
-  
 }
 
-ServiceDefinition::~ServiceDefinition()
-{
-}
+ServiceDefinition::~ServiceDefinition() {}
 
 ServiceDefinition* ServiceDefinition::get(const QString& _type_name)
 {

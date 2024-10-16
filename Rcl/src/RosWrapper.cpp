@@ -9,23 +9,13 @@
 
 #include "RosThread.h"
 
-RosWrapper::RosWrapper(QObject* _parent) : RosObject(_parent)
-{
-}
+RosWrapper::RosWrapper(QObject* _parent) : RosObject(_parent) {}
 
-RosWrapper::~RosWrapper()
-{
-}
+RosWrapper::~RosWrapper() {}
 
-quint64 RosWrapper::startTime() const
-{
-  return RosThread::instance()->startTime();
-}
+quint64 RosWrapper::startTime() const { return RosThread::instance()->startTime(); }
 
-quint64 RosWrapper::now() const
-{
-  return RosThread::instance()->now();
-}
+quint64 RosWrapper::now() const { return RosThread::instance()->now(); }
 
 QByteArray RosWrapper::toByteArray(const QVariant& _list) const
 {
@@ -68,24 +58,28 @@ QString RosWrapper::toUuid(const QVariant& _list) const
 QByteArray RosWrapper::sha3_512(const QVariant& _value) const
 {
   QCryptographicHash hash(QCryptographicHash::Sha3_512);
-  switch(_value.type())
+  switch(_value.typeId())
   {
-    case QVariant::ByteArray:
+  case QVariant::ByteArray:
+    hash.addData(_value.toByteArray());
+    break;
+  case QVariant::String:
+    hash.addData(_value.toString().toUtf8());
+    break;
+  default:
+    if(_value.canConvert<QByteArray>())
+    {
       hash.addData(_value.toByteArray());
-      break;
-    case QVariant::String:
+    }
+    else if(_value.canConvert<QString>())
+    {
       hash.addData(_value.toString().toUtf8());
-      break;
-    default:
-      if(_value.canConvert<QByteArray>())
-      {
-        hash.addData(_value.toByteArray());
-      } else if(_value.canConvert<QString>()) {
-        hash.addData(_value.toString().toUtf8());
-      } else {
-        qWarning() << "Cannot compute sha3_512 for value:" << _value;
-        return QByteArray();
-      }
+    }
+    else
+    {
+      qWarning() << "Cannot compute sha3_512 for value:" << _value;
+      return QByteArray();
+    }
   }
   return hash.result();
 }

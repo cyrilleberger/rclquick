@@ -4,9 +4,7 @@
 
 #include "MessageDefinition.h"
 
-MessageMessageField::~MessageMessageField()
-{
-}
+MessageMessageField::~MessageMessageField() {}
 
 void MessageMessageField::elementInitialize(quint8* _data) const
 {
@@ -34,14 +32,13 @@ void MessageMessageField::elementWriteValue(quint8* _data, const QVariant& _valu
   m_md->serializeMessage(_value.toMap(), _data);
 }
 
-std::size_t MessageMessageField::elementSize() const
-{
-  return m_md->serializedLength();
-}
+std::size_t MessageMessageField::elementSize() const { return m_md->serializedLength(); }
 
 std::size_t MessageMessageField::elementAlignment() const
 {
-  struct dummy {};
+  struct dummy
+  {
+  };
   return alignof(dummy);
 }
 

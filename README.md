@@ -4,7 +4,7 @@ RCLQUICK
 Requirements
 ------------
 
-- `qt5`
+- `qt6`
 - ROS2 rclc library
 
 Installation

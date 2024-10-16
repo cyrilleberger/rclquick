@@ -10,8 +10,8 @@ namespace ros
     class IStream;
     class OStream;
     class LStream;
-  }
-}
+  } // namespace serialization
+} // namespace ros
 
 class MessageField : public QObject
 {
@@ -19,8 +19,24 @@ class MessageField : public QObject
   Q_PROPERTY(QString name READ name CONSTANT)
   Q_PROPERTY(Type type READ type CONSTANT)
 public:
-  enum class Type {
-    Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Float32, Float64, String, Time, Duration, Message, ByteArray
+  enum class Type
+  {
+    Bool,
+    Int8,
+    UInt8,
+    Int16,
+    UInt16,
+    Int32,
+    UInt32,
+    Int64,
+    UInt64,
+    Float32,
+    Float64,
+    String,
+    Time,
+    Duration,
+    Message,
+    ByteArray
   };
   Q_ENUM(Type)
 public:

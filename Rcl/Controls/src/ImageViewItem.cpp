@@ -12,29 +12,23 @@ ImageViewItem::ImageViewItem(QQuickItem* _parent) : QQuickItem(_parent), m_image
   m_pool.setMaxThreadCount(1);
 }
 
-ImageViewItem::~ImageViewItem()
-{
-}
+ImageViewItem::~ImageViewItem() {}
 
-Image* ImageViewItem::image() const
-{
-  return m_image;
-}
+Image* ImageViewItem::image() const { return m_image; }
 
 void ImageViewItem::updateImage()
 {
   m_pool.clear();
   Image::Data data = m_image->imageData(); // Make a copy of data to use it in a different thread
-  QtConcurrent::run(&m_pool, [this, data](){
-    m_img = Image(data).toQImage();
-    QMetaObject::invokeMethod(this, "update", Qt::QueuedConnection);
-  });
+  Q_UNUSED(QtConcurrent::run(&m_pool,
+                             [this, data]()
+                             {
+                               m_img = Image(data).toQImage();
+                               QMetaObject::invokeMethod(this, "update", Qt::QueuedConnection);
+                             }));
 }
 
-ImageViewItem::FillMode ImageViewItem::fillMode() const
-{
-  return m_fillMode;
-}
+ImageViewItem::FillMode ImageViewItem::fillMode() const { return m_fillMode; }
 
 void ImageViewItem::setFillMode(FillMode _fillMode)
 {
@@ -66,12 +60,12 @@ QSGNode* ImageViewItem::updatePaintNode(QSGNode* _oldNode, UpdatePaintNodeData* 
   int i_height = m_img.height();
   switch(m_fillMode)
   {
-    case FillMode::NoFill:
-      break;
-    case FillMode::Fit:
-      i_width = width();
-      i_height = height();
-      break;
+  case FillMode::NoFill:
+    break;
+  case FillMode::Fit:
+    i_width = width();
+    i_height = height();
+    break;
   }
   textureNode->setRect(0, 0, i_width, i_height);
   textureNode->setTexture(m_texture);
